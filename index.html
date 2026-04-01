@@ -1,984 +1,430 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Warranty Portal</title>
-  <style>
-    :root{
-      --bg:#ffffff; --card:#ffffff; --text:#0f172a; --muted:#64748b; --border:#e2e8f0;
-      --primary:#2563eb; --primary2:#1d4ed8;
-      --ok:#16a34a; --warn:#d97706; --bad:#dc2626; --soft:#f8fafc;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-      background:linear-gradient(180deg,#ffffff 0%, #f6f7fb 100%);
-      color:var(--text);min-height:100vh;
-    }
-    .wrap{max-width:1120px;margin:0 auto;padding:26px 16px}
-    header{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:14px}
-    h1{font-size:18px;margin:0}
-    .sub{color:var(--muted);font-size:13px;line-height:1.4}
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 12px;
+        color: #222;
+      }
+      h2, h3 {
+        margin: 12px 0 8px;
+      }
+      .section {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 14px;
+      }
+      label {
+        display: block;
+        font-weight: bold;
+        margin: 8px 0 4px;
+      }
+      input[type="text"],
+      input[type="email"],
+      select,
+      textarea {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+      }
+      textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .btn {
+        background: #1a73e8;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 12px;
+        cursor: pointer;
+        margin-top: 10px;
+      }
+      .btn.secondary {
+        background: #666;
+      }
+      .muted {
+        color: #666;
+        font-size: 12px;
+      }
+      .placeholder-tag {
+        display: inline-block;
+        background: #f1f3f4;
+        border: 1px solid #ddd;
+        border-radius: 999px;
+        padding: 4px 8px;
+        margin: 4px 4px 0 0;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .cc-item {
+        margin-bottom: 6px;
+      }
+      .preview-box {
+        border: 1px dashed #bbb;
+        background: #fafafa;
+        padding: 10px;
+        border-radius: 6px;
+        white-space: pre-wrap;
+      }
+      .success {
+        color: green;
+        margin-top: 8px;
+      }
+      .error {
+        color: red;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Mail Template Manager</h2>
 
-    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:0 10px 22px rgba(2,6,23,.06)}
-    .two{display:grid;grid-template-columns:440px 1fr;gap:14px;align-items:stretch}
-    @media (max-width: 980px){.two{grid-template-columns:1fr}}
-    .colStretch{height:100%;display:flex;flex-direction:column}
+    <div class="section">
+      <label for="templateSelect">Template kiezen</label>
+      <select id="templateSelect"></select>
 
-    label{display:block;color:var(--muted);font-size:12px;margin:10px 0 6px}
-    input, select, textarea{
-      width:100%;border:1px solid var(--border);background:#fff;color:var(--text);
-      padding:10px 12px;border-radius:12px;outline:none;
-    }
-    textarea{resize:vertical}
-    input:focus, select:focus, textarea:focus{
-      border-color:rgba(37,99,235,.55);box-shadow:0 0 0 4px rgba(37,99,235,.12)
-    }
-
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .btn{
-      border:1px solid var(--border);background:#fff;color:var(--text);
-      padding:10px 12px;border-radius:12px;cursor:pointer;white-space:nowrap;
-      transition:transform .05s ease, box-shadow .15s ease, background .15s ease;
-      display:inline-flex;align-items:center;justify-content:center;gap:8px;
-    }
-    .btn:active{transform:translateY(1px)}
-    .btn.primary{
-      background:linear-gradient(180deg,var(--primary),var(--primary2));
-      border-color:transparent;color:#fff;box-shadow:0 8px 16px rgba(37,99,235,.18);
-    }
-    .btn:disabled{opacity:.55;cursor:not-allowed}
-    .btn.icon{width:44px;padding:10px 0}
-    .btn.small{padding:8px 10px;border-radius:10px;font-size:12px}
-    .btn.danger{border-color:rgba(220,38,38,.35);background:rgba(220,38,38,.06)}
-    .btn.active{
-      border-color:rgba(37,99,235,.55);
-      box-shadow:0 0 0 4px rgba(37,99,235,.12);
-    }
-
-    .table{
-      width:100%;border-collapse:separate;border-spacing:0;border-radius:14px;overflow:hidden;
-      border:1px solid var(--border);background:#fff;
-    }
-    .table th,.table td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle;text-align:left}
-    .table th{color:var(--muted);font-weight:600;background:var(--soft)}
-    .table tr:last-child td{border-bottom:none}
-
-    .muted{color:var(--muted)}
-    .hint{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.5}
-    .hidden{display:none !important}
-
-    .kvRow{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin:10px 0 6px}
-    .kvBlock{min-width:0}
-    .kvLabel{color:var(--muted);font-size:12px}
-    .kvValue{font-size:16px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .smallLine{margin-top:3px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-    .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);font-size:12px;color:var(--muted);white-space:nowrap;background:#fff}
-    .dot{width:8px;height:8px;border-radius:999px;background:var(--warn)}
-    .pill.ok .dot{background:var(--ok)}
-    .pill.bad .dot{background:var(--bad)}
-    .pill.mid .dot{background:var(--warn)}
-
-    /* 3 steps indicator */
-    .steps{display:flex;gap:6px;align-items:center;justify-content:center}
-    .stepDot{width:10px;height:10px;border-radius:999px;border:1px solid var(--border);background:#fff}
-    .stepDot.on{background:var(--primary);border-color:rgba(37,99,235,.35)}
-    .stepLine{flex:1;height:2px;background:var(--border);min-width:14px}
-
-    .overlay{position:fixed;inset:0;background:rgba(15,23,42,.35);display:grid;place-items:center;padding:18px;z-index:9999}
-
-    .toggleRow{
-      display:flex;justify-content:space-between;align-items:center;gap:10px;
-      padding:10px 12px;border:1px dashed var(--border);background:var(--soft);
-      border-radius:12px;cursor:pointer;user-select:none;
-    }
-    .plusSym{font-weight:800;font-size:18px;line-height:1;color:var(--muted)}
-    .sectionTitle{font-size:12px;color:var(--muted);letter-spacing:.2px}
-    .divider{height:1px;background:var(--border);margin:12px 0}
-
-    .mailGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;margin-top:10px}
-    @media (max-width:520px){.mailGrid{grid-template-columns:1fr}}
-    .flagRow{display:flex;gap:8px;flex-wrap:nowrap}
-    .flag{font-size:16px;line-height:1}
-
-    .tokenRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-
-    .savedTemplateRow{
-      display:flex;justify-content:space-between;align-items:center;gap:10px;
-      padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:#fff;
-    }
-    .savedLeft{min-width:0;display:flex;gap:10px;align-items:flex-start}
-    .tplName{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:520px}
-    .tplMeta{color:var(--muted);font-size:12px;white-space:normal;overflow-wrap:anywhere;word-break:break-word;max-width:520px}
-
-    #indepTemplatesList{display:flex;flex-direction:column;gap:10px}
-    .topRightTools{display:flex;gap:10px;align-items:center;justify-content:flex-end}
-  </style>
-</head>
-
-<body>
-<section id="portalView">
-  <div class="wrap">
-    <header>
-      <div>
-        <h1>Warranty Portal 🛠️</h1>
-        <div class="sub">Simple warranty tracking — 3 steps to completion</div>
-      </div>
-      <div class="row topRightTools">
-        <button id="newWarrantyBtn" class="btn primary" type="button">
-          <span style="font-weight:900;font-size:18px;line-height:1">+</span>
-          <span>Add warranty</span>
-        </button>
-      </div>
-    </header>
-
-    <div class="two">
-      <!-- LEFT: Editor -->
-      <section class="card colStretch">
-        <div id="noSelection" class="hint">Open a warranty from the table.</div>
-
-        <div id="form" class="hidden" style="flex:1; display:flex; flex-direction:column;">
-          <div class="kvRow">
-            <div class="kvBlock" style="flex:1; min-width:0">
-              <div class="kvLabel">Customer</div>
-              <div class="kvValue" id="nameLabel">—</div>
-              <div class="smallLine" id="emailLine"></div>
-
-              <div style="height:10px"></div>
-              <div class="kvLabel">Supplier</div>
-              <div class="kvValue" id="supplierLabel">—</div>
-
-              <div style="height:10px"></div>
-              <div class="kvLabel">Warranty ID</div>
-              <div class="smallLine" id="idLine"></div>
-            </div>
-
-            <div class="kvBlock" style="flex:0 0 auto; display:flex; align-items:flex-start">
-              <span id="statusBadge" class="pill bad">
-                <span class="dot"></span><span id="statusText">No selection</span>
-              </span>
-            </div>
-          </div>
-
-          <div class="divider"></div>
-
-          <div class="sectionTitle" style="margin-bottom:8px">Progress</div>
-          <div class="row" style="justify-content:space-between;align-items:center">
-            <div class="steps" style="width:190px">
-              <span class="stepDot" id="sd1"></span>
-              <span class="stepLine"></span>
-              <span class="stepDot" id="sd2"></span>
-              <span class="stepLine"></span>
-              <span class="stepDot" id="sd3"></span>
-            </div>
-            <div class="row" style="gap:8px">
-              <button id="step1Btn" class="btn small" type="button">Step 1</button>
-              <button id="step2Btn" class="btn small" type="button">Step 2</button>
-              <button id="step3Btn" class="btn small" type="button">Step 3</button>
-            </div>
-          </div>
-
-          <label>Status</label>
-          <select id="statusSelect">
-            <option value="New">New</option>
-            <option value="In progress">In progress</option>
-            <option value="Waiting for supplier">Waiting for supplier</option>
-            <option value="Resolved">Resolved</option>
-            <option value="Closed">Closed</option>
-          </select>
-
-          <label>Notes</label>
-          <textarea id="notes" rows="6" placeholder="Add notes…"></textarea>
-
-          <div class="row" style="margin-top:12px">
-            <button id="saveBtn" class="btn primary" type="button">Save</button>
-            <button id="deleteBtn" class="btn danger" type="button">Delete</button>
-          </div>
-
-          <!-- Templates (simple) -->
-          <div class="divider"></div>
-          <div class="sectionTitle" style="margin-bottom:6px">Templates</div>
-
-          <div class="mailGrid">
-            <div>
-              <div class="sectionTitle" style="margin-bottom:8px">Mail customer (default)</div>
-              <div class="flagRow">
-                <button class="btn icon" id="mc_en" title="EN"><span class="flag">🇬🇧</span></button>
-                <button class="btn icon" id="mc_nl" title="NL"><span class="flag">🇳🇱</span></button>
-                <button class="btn icon" id="mc_de" title="DE"><span class="flag">🇩🇪</span></button>
-                <button class="btn icon" id="mc_fr" title="FR"><span class="flag">🇫🇷</span></button>
-              </div>
-              <div class="hint" id="mailMsg"></div>
-            </div>
-
-            <div>
-              <div class="sectionTitle" style="margin-bottom:8px">Mail supplier (default)</div>
-              <div class="flagRow">
-                <button class="btn icon" id="ms_en" title="EN"><span class="flag">🇬🇧</span></button>
-                <button class="btn icon" id="ms_nl" title="NL"><span class="flag">🇳🇱</span></button>
-              </div>
-              <div class="hint" id="mailSupplierMsg"></div>
-            </div>
-          </div>
-
-          <div class="divider"></div>
-
-          <div class="sectionTitle" style="margin-bottom:10px">Saved templates</div>
-          <div id="indepTemplatesList">
-            <div class="muted" style="font-size:13px">Loading…</div>
-          </div>
-          <div class="hint" id="indepSendMsg"></div>
-
-          <div class="divider"></div>
-
-          <div class="toggleRow" id="addIndepToggle">
-            <div class="sectionTitle">Add / edit template</div>
-            <div class="plusSym" id="addIndepPlus">+</div>
-          </div>
-
-          <div id="addIndepBody" class="hidden" style="margin-top:10px">
-            <div class="row">
-              <div style="flex:1;min-width:160px">
-                <label style="margin-top:0">Language</label>
-                <select id="indepLang">
-                  <option value="en">EN</option>
-                  <option value="nl">NL</option>
-                  <option value="de">DE</option>
-                  <option value="fr">FR</option>
-                </select>
-              </div>
-              <div style="flex:2;min-width:220px">
-                <label style="margin-top:0">Template name</label>
-                <input id="indepLabel" placeholder="e.g. Request info" />
-              </div>
-            </div>
-
-            <label>Subject</label>
-            <input id="indepSubject" />
-
-            <label>Body</label>
-            <textarea id="indepBodyText" rows="7"></textarea>
-
-            <div class="tokenRow">
-              <button class="btn small" type="button" data-token="{{Name}}">{{Name}}</button>
-              <button class="btn small" type="button" data-token="{{Email}}">{{Email}}</button>
-              <button class="btn small" type="button" data-token="{{Phone}}">{{Phone}}</button>
-              <button class="btn small" type="button" data-token="{{Supplier}}">{{Supplier}}</button>
-              <button class="btn small" type="button" data-token="{{Status}}">{{Status}}</button>
-              <button class="btn small" type="button" data-token="{{Step}}">{{Step}}</button>
-              <button class="btn small" type="button" data-token="{{Notes}}">{{Notes}}</button>
-              <button class="btn small" type="button" data-token="{{WarrantyID}}">{{WarrantyID}}</button>
-            </div>
-
-            <div class="row" style="margin-top:10px;justify-content:flex-end;gap:8px">
-              <button id="indepCancel" class="btn" type="button">Cancel edit</button>
-              <button id="indepSave" class="btn primary" type="button">Save</button>
-            </div>
-            <div class="hint" id="indepSaveMsg"></div>
-          </div>
-
-          <div class="hint" id="msg" style="margin-top:auto"></div>
+      <div class="row">
+        <div>
+          <label for="templateKey">TemplateKey</label>
+          <input type="text" id="templateKey">
         </div>
-      </section>
-
-      <!-- RIGHT: List -->
-      <section class="card colStretch">
-        <input id="search" placeholder="Search name / email / supplier…" style="width:100%;margin-bottom:12px" />
-
-        <table class="table">
-          <thead>
-            <tr>
-              <th style="width:52%">Customer</th>
-              <th style="width:22%">Supplier</th>
-              <th style="width:160px;text-align:center">Progress</th>
-              <th style="width:180px;text-align:center">Status</th>
-              <th style="width:120px">Action</th>
-            </tr>
-          </thead>
-          <tbody id="tbody">
-            <tr><td colspan="5" class="muted">Loading…</td></tr>
-          </tbody>
-        </table>
-
-        <div style="flex:1"></div>
-      </section>
-    </div>
-  </div>
-</section>
-
-<!-- New warranty modal -->
-<div id="newModal" class="overlay hidden">
-  <div class="card" style="max-width:560px;width:100%">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-      <div style="font-weight:800">New warranty</div>
-      <button id="newClose" class="btn" type="button">Close</button>
-    </div>
-
-    <label>Name</label>
-    <input id="newName" />
-
-    <label>Email</label>
-    <input id="newEmail" type="email" />
-
-    <label>Phone</label>
-    <input id="newPhone" />
-
-    <label>Supplier</label>
-    <input id="newSupplier" placeholder="Supplier name" />
-
-    <div class="row" style="margin-top:12px;justify-content:flex-end">
-      <button id="createBtn" class="btn primary" type="button">Add warranty</button>
-    </div>
-
-    <div class="hint" id="createMsg"></div>
-  </div>
-</div>
-
-<!-- Mail picker -->
-<div id="mailPicker" class="hidden" style="position:fixed;inset:0;background:rgba(15,23,42,.35);display:grid;place-items:center;padding:18px;z-index:9999">
-  <div class="card" style="max-width:420px;width:100%">
-    <div style="font-weight:700;font-size:14px">Choose mail app</div>
-    <div class="row" style="margin-top:12px; justify-content:center">
-      <button id="pickGmail" class="btn" type="button">Gmail</button>
-      <button id="pickApple" class="btn" type="button">Apple Mail</button>
-      <button id="pickCancel" class="btn primary" type="button">Cancel</button>
-    </div>
-    <div class="hint" id="pickHint"></div>
-  </div>
-</div>
-
-<script>
-/** Put your Apps Script /exec URL here */
-const API_BASE = "https://script.google.com/macros/s/AKfycbyruaXRSB8MkTvfH40Pi09vxktH0P2mC0AYJBOglglbJCc9HPXxP3H5hXDZQZ6w-dUHWg/exec";
-
-const $ = (id)=>document.getElementById(id);
-
-/* ---------- utils ---------- */
-function escapeHTML(s){
-  return String(s || "").replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
-}
-function jsonp(url){
-  return new Promise((resolve, reject) => {
-    const cb = "cb_" + Math.random().toString(36).slice(2);
-    const script = document.createElement("script");
-    window[cb] = (data) => { try{delete window[cb]}catch(_){} script.remove(); resolve(data); };
-    script.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
-    script.onerror = () => { try{delete window[cb]}catch(_){} script.remove(); reject(new Error("JSONP failed")); };
-    document.head.appendChild(script);
-  });
-}
-async function api_(qs){
-  return await jsonp(`${API_BASE}${API_BASE.includes("?") ? "&" : "?"}${qs}`);
-}
-function normalizeStep(v){
-  const n = parseInt(String(v||"1"), 10);
-  return [1,2,3].includes(n) ? n : 1;
-}
-function setBadgeFromSelected_(){
-  if(!selected){
-    $("statusText").textContent = "No selection";
-    $("statusBadge").classList.remove("ok","bad","mid");
-    $("statusBadge").classList.add("bad");
-    return;
-  }
-  const done = normalizeStep(selected.Step) === 3;
-  $("statusBadge").classList.remove("ok","bad","mid");
-  if(done){
-    $("statusBadge").classList.add("ok");
-    $("statusText").textContent = "Completed";
-  } else {
-    const s = String(selected.Status||"New").toLowerCase();
-    $("statusBadge").classList.add(s.includes("new") ? "bad" : "mid");
-    $("statusText").textContent = selected.Status || "New";
-  }
-}
-function setStepsUI_(step){
-  const s = normalizeStep(step);
-  $("sd1").classList.toggle("on", s>=1);
-  $("sd2").classList.toggle("on", s>=2);
-  $("sd3").classList.toggle("on", s>=3);
-
-  $("step1Btn").classList.toggle("active", s===1);
-  $("step2Btn").classList.toggle("active", s===2);
-  $("step3Btn").classList.toggle("active", s===3);
-
-  if(selected) selected.Step = s;
-  setBadgeFromSelected_();
-}
-
-/* ---------- state ---------- */
-let rows = [];
-let selected = null;
-
-let templates = [];         // independent templates
-let tplCustomer = [];       // default customer templates (label DEFAULT)
-let tplSupplier = [];       // default supplier templates (label DEFAULT)
-
-let lastFocusedField = null;
-
-/* ---------- tokens ---------- */
-function tokenMap(){
-  const w = selected || {};
-  return {
-    "{{Name}}": (w.Name || ""),
-    "{{Email}}": (w.Email || ""),
-    "{{Phone}}": (w.Phone || ""),
-    "{{Supplier}}": (w.Supplier || ""),
-    "{{Status}}": (w.Status || ""),
-    "{{Step}}": String(w.Step || ""),
-    "{{Notes}}": (w.Notes || ""),
-    "{{WarrantyID}}": (w.ID || "")
-  };
-}
-function applyTokens(txt){
-  let out = String(txt||"");
-  const m = tokenMap();
-  for(const k of Object.keys(m)) out = out.split(k).join(String(m[k]||""));
-  return out;
-}
-
-/* focus tracking for token insertion */
-document.addEventListener("focusin", (e)=>{
-  const el = e.target;
-  if(!el) return;
-  const tag = (el.tagName || "").toLowerCase();
-  if(tag === "input" || tag === "textarea") lastFocusedField = el;
-});
-function insertAtCursor_(el, text){
-  if(!el) return;
-  const start = (typeof el.selectionStart === "number") ? el.selectionStart : el.value.length;
-  const end = (typeof el.selectionEnd === "number") ? el.selectionEnd : el.value.length;
-  el.value = el.value.slice(0, start) + text + el.value.slice(end);
-  const pos = start + text.length;
-  if(el.setSelectionRange) el.setSelectionRange(pos, pos);
-  el.focus && el.focus();
-}
-function bindTokenButtons_(){
-  document.querySelectorAll("button[data-token]").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      const token = btn.getAttribute("data-token");
-      const target = lastFocusedField || $("indepBodyText");
-      insertAtCursor_(target, token);
-    });
-  });
-}
-
-/* ---------- toggles ---------- */
-function setupToggle(toggleId, bodyId, plusId, onOpen){
-  const t = $(toggleId), b = $(bodyId), p = $(plusId);
-  if(!t || !b || !p) return;
-  t.addEventListener("click", ()=>{
-    const isHidden = b.classList.toggle("hidden");
-    p.textContent = isHidden ? "+" : "–";
-    if(!isHidden && typeof onOpen === "function") onOpen();
-  });
-}
-setupToggle("addIndepToggle","addIndepBody","addIndepPlus", resetIndepEditor_);
-
-/* ---------- mail picker ---------- */
-let pendingMail = null;
-function openGmailCompose(to, subject, body){
-  const gmailUrl =
-    "https://mail.google.com/mail/?view=cm&fs=1" +
-    `&to=${encodeURIComponent(to)}` +
-    `&su=${encodeURIComponent(subject)}` +
-    `&body=${encodeURIComponent(body)}`;
-  window.open(gmailUrl, "_blank", "noopener,noreferrer");
-}
-function openAppleMail(to, subject, body){
-  const mailtoUrl =
-    "mailto:" + encodeURIComponent(to) +
-    `?subject=${encodeURIComponent(subject)}` +
-    `&body=${encodeURIComponent(body)}`;
-  window.location.href = mailtoUrl;
-}
-function openMailPicker(payload){
-  pendingMail = payload;
-  $("pickHint").textContent = "";
-  $("mailPicker").classList.remove("hidden");
-}
-function closeMailPicker(){
-  pendingMail = null;
-  $("mailPicker").classList.add("hidden");
-}
-$("pickGmail").addEventListener("click", ()=>{
-  if(!pendingMail) return;
-  openGmailCompose(pendingMail.to, pendingMail.subject, pendingMail.body);
-  closeMailPicker();
-});
-$("pickApple").addEventListener("click", ()=>{
-  if(!pendingMail) return;
-  openAppleMail(pendingMail.to, pendingMail.subject, pendingMail.body);
-  closeMailPicker();
-});
-$("pickCancel").addEventListener("click", closeMailPicker);
-$("mailPicker").addEventListener("click", (e)=>{ if(e.target === $("mailPicker")) closeMailPicker(); });
-
-/* ---------- templates ---------- */
-function findDefault_(arr, lang){
-  const l = String(lang||"").toLowerCase();
-  return arr.find(x => String(x.language||x.Language||"").toLowerCase()===l && String(x.label||x.Label||"").toUpperCase()==="DEFAULT")
-      || arr.find(x => String(x.language||x.Language||"").toLowerCase()===l)
-      || null;
-}
-function langFlag_(lang){
-  const l = String(lang||"").toLowerCase();
-  if(l==="nl") return "🇳🇱";
-  if(l==="de") return "🇩🇪";
-  if(l==="fr") return "🇫🇷";
-  return "🇬🇧";
-}
-async function loadTemplates_(){
-  // expects: action=templates_list&kind=independent|customer|supplier
-  const a = await api_(`action=templates_list&kind=independent`).catch(()=>null);
-  templates = (a && a.ok && Array.isArray(a.templates)) ? a.templates : [];
-
-  const c = await api_(`action=templates_list&kind=customer`).catch(()=>null);
-  tplCustomer = (c && c.ok && Array.isArray(c.templates)) ? c.templates : [];
-
-  const s = await api_(`action=templates_list&kind=supplier`).catch(()=>null);
-  tplSupplier = (s && s.ok && Array.isArray(s.templates)) ? s.templates : [];
-
-  renderTemplates_();
-}
-function renderTemplates_(){
-  const wrap = $("indepTemplatesList");
-  wrap.innerHTML = "";
-
-  const list = templates.slice().sort((a,b)=>{
-    const la = String(a.language||a.Language||"").toLowerCase();
-    const lb = String(b.language||b.Language||"").toLowerCase();
-    if(la!==lb) return la.localeCompare(lb);
-    return String(a.label||a.Label||"").localeCompare(String(b.label||b.Label||""));
-  });
-
-  if(!list.length){
-    wrap.innerHTML = `<div class="muted" style="font-size:13px">No templates.</div>`;
-    return;
-  }
-
-  for(const t of list){
-    const id = String(t.id || t.ID || "");
-    const lang = String(t.language||t.Language||"en");
-    const label = String(t.label||t.Label||"");
-    const subject = String(t.subject||t.Subject||"");
-
-    const row = document.createElement("div");
-    row.className = "savedTemplateRow";
-    row.innerHTML = `
-      <div class="savedLeft">
-        <div class="flag" title="${escapeHTML(lang.toUpperCase())}">${langFlag_(lang)}</div>
-        <div style="min-width:0">
-          <div class="tplName" title="${escapeHTML(label)}">${escapeHTML(label)}</div>
-          <div class="tplMeta">${escapeHTML(subject)}</div>
+        <div>
+          <label for="language">Taal</label>
+          <input type="text" id="language" placeholder="bijv. NL of EN">
         </div>
       </div>
-      <div class="row" style="flex-wrap:nowrap;gap:8px">
-        <button class="btn" type="button" data-tpl-edit="${escapeHTML(id)}">Edit</button>
-        <button class="btn" type="button" data-tpl-send="${escapeHTML(id)}">Send</button>
-      </div>
-    `;
-    wrap.appendChild(row);
-  }
 
-  wrap.querySelectorAll("button[data-tpl-send]").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      if(!selected){
-        $("indepSendMsg").innerHTML = "<span style='color:var(--warn)'>Open a warranty first.</span>";
-        return;
-      }
-      const id = btn.getAttribute("data-tpl-send");
-      const tpl = templates.find(x => String(x.id||x.ID)===String(id));
-      if(!tpl) return;
+      <label for="subject">Onderwerp</label>
+      <input type="text" id="subject">
 
-      const to = String(selected.Email||"").trim();
-      if(!to){
-        $("indepSendMsg").innerHTML = "<span style='color:var(--warn)'>No customer email found.</span>";
-        return;
-      }
+      <label for="body">Inhoud</label>
+      <textarea id="body"></textarea>
 
-      const subject = applyTokens(String(tpl.subject||tpl.Subject||""));
-      const body = applyTokens(String(tpl.body||tpl.Body||""));
-
-      openMailPicker({ to, subject, body });
-      $("indepSendMsg").innerHTML = "<span style='color:var(--ok)'>Mail opened ✓</span>";
-    });
-  });
-
-  wrap.querySelectorAll("button[data-tpl-edit]").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      const id = btn.getAttribute("data-tpl-edit");
-      const tpl = templates.find(x => String(x.id||x.ID)===String(id));
-      if(!tpl) return;
-
-      $("addIndepBody").classList.remove("hidden");
-      $("addIndepPlus").textContent = "–";
-
-      $("indepLang").value = String(tpl.language||tpl.Language||"en").toLowerCase();
-      $("indepLabel").value = String(tpl.label||tpl.Label||"");
-      $("indepSubject").value = String(tpl.subject||tpl.Subject||"");
-      $("indepBodyText").value = String(tpl.body||tpl.Body||"");
-
-      $("indepSave").dataset.editId = String(tpl.id||tpl.ID||"");
-      $("indepSave").textContent = "Update";
-      $("indepSaveMsg").textContent = "";
-    });
-  });
-}
-
-function resetIndepEditor_(){
-  $("indepLang").value = "en";
-  $("indepLabel").value = "";
-  $("indepSubject").value = "";
-  $("indepBodyText").value = "";
-  $("indepSaveMsg").textContent = "";
-  $("indepSave").textContent = "Save";
-  delete $("indepSave").dataset.editId;
-}
-
-async function saveTemplate_(){
-  const lang = ($("indepLang").value||"en").toLowerCase();
-  const label = ($("indepLabel").value||"").trim();
-  const subject = ($("indepSubject").value||"").trim();
-  const body = ($("indepBodyText").value||"").trim();
-  const msg = $("indepSaveMsg");
-
-  if(!label){
-    msg.innerHTML = `<span style="color:var(--warn)">Template name required.</span>`;
-    return;
-  }
-
-  msg.textContent = "Saving…";
-
-  const editId = $("indepSave").dataset.editId || "";
-  const data = await api_(
-    `action=template_upsert` +
-    (editId ? `&id=${encodeURIComponent(editId)}` : "") +
-    `&kind=${encodeURIComponent("independent")}` +
-    `&language=${encodeURIComponent(lang)}` +
-    `&label=${encodeURIComponent(label)}` +
-    `&subject=${encodeURIComponent(subject)}` +
-    `&body=${encodeURIComponent(body)}`
-  ).catch(()=>null);
-
-  if(!data || !data.ok){
-    msg.innerHTML = `<span style="color:var(--bad)">${escapeHTML((data && data.error) || "Save failed.")}</span>`;
-    return;
-  }
-
-  msg.innerHTML = `<span style="color:var(--ok)">Saved ✓</span>`;
-  resetIndepEditor_();
-  await loadTemplates_();
-}
-
-/* default mail drafts */
-function customerDraftFromLang_(lang){
-  const t = findDefault_(tplCustomer, lang) || { subject:"", body:"" };
-  return {
-    subject: applyTokens(t.subject || t.Subject || ""),
-    body: applyTokens(t.body || t.Body || "")
-  };
-}
-function supplierDraftFromLang_(lang){
-  const t = findDefault_(tplSupplier, lang) || { subject:"", body:"" };
-  return {
-    subject: applyTokens(t.subject || t.Subject || ""),
-    body: applyTokens(t.body || t.Body || "")
-  };
-}
-
-/* mail buttons */
-function setBtnActive_(btn){
-  const row = btn.closest(".flagRow");
-  if(!row) return;
-  row.querySelectorAll(".btn").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");
-}
-async function mailCustomer_(lang, btn){
-  if(!selected) return $("mailMsg").innerHTML = "<span style='color:var(--warn)'>Open a warranty first.</span>";
-  if(btn) setBtnActive_(btn);
-
-  const to = String(selected.Email||"").trim();
-  if(!to) return $("mailMsg").innerHTML = "<span style='color:var(--warn)'>No customer email found.</span>";
-
-  const d = customerDraftFromLang_(lang);
-  openMailPicker({ to, subject:d.subject, body:d.body });
-  $("mailMsg").innerHTML = "<span style='color:var(--ok)'>Mail opened ✓</span>";
-}
-async function mailSupplier_(lang, btn){
-  if(!selected) return $("mailSupplierMsg").innerHTML = "<span style='color:var(--warn)'>Open a warranty first.</span>";
-  if(btn) setBtnActive_(btn);
-
-  // simple: use supplier as email if you want; otherwise add SupplierEmail in your sheet later
-  // Here we just open a draft without TO if you don't have it.
-  const to = ""; // keep simple
-  const d = supplierDraftFromLang_(lang);
-  openMailPicker({ to, subject:d.subject, body:d.body });
-  $("mailSupplierMsg").innerHTML = "<span style='color:var(--ok)'>Mail opened ✓</span>";
-}
-
-/* ---------- warranties CRUD ---------- */
-async function loadWarranties_(){
-  $("tbody").innerHTML = `<tr><td colspan="5" class="muted">Loading…</td></tr>`;
-  const data = await api_(`action=list`).catch(()=>null);
-  if(!data || !data.ok){
-    $("tbody").innerHTML = `<tr><td colspan="5" class="muted">${escapeHTML((data && data.error) || "Could not load.")}</td></tr>`;
-    return;
-  }
-
-  rows = (data.rows || data.warranties || []).slice().map(r => ({
-    ID: r.ID ?? r.Id ?? r.id ?? "",
-    Name: r.Name ?? "",
-    Email: r.Email ?? "",
-    Phone: r.Phone ?? "",
-    Supplier: r.Supplier ?? "",
-    Status: r.Status ?? "New",
-    Step: normalizeStep(r.Step ?? 1),
-    Notes: r.Notes ?? ""
-  }));
-
-  rows.sort((a,b)=> String(b.ID).localeCompare(String(a.ID)));
-  renderList_();
-}
-
-function matchesQuery_(r, q){
-  if(!q) return true;
-  const hay = [r.Name, r.Email, r.Supplier, r.Phone, r.Status, String(r.ID||"")].join(" ").toLowerCase();
-  return hay.includes(q);
-}
-function progressHtml_(step){
-  const s = normalizeStep(step);
-  return `
-    <div class="steps" title="Step ${s} of 3">
-      <span class="stepDot ${s>=1?"on":""}"></span>
-      <span class="stepLine"></span>
-      <span class="stepDot ${s>=2?"on":""}"></span>
-      <span class="stepLine"></span>
-      <span class="stepDot ${s>=3?"on":""}"></span>
+      <button class="btn" onclick="saveTemplate()">Template opslaan</button>
+      <div id="templateMessage"></div>
     </div>
-  `;
-}
-function statusPill_(r){
-  const s = String(r.Status||"").toLowerCase();
-  const done = normalizeStep(r.Step) === 3;
-  let kind = done ? "ok" : (s.includes("new") ? "bad" : "mid");
-  const label = done ? "Completed" : (r.Status || "—");
-  return `<span class="pill ${kind}"><span class="dot"></span>${escapeHTML(label)}</span>`;
-}
-function renderList_(){
-  const q = ($("search").value || "").trim().toLowerCase();
-  const list = rows.filter(r => matchesQuery_(r, q));
-  const tb = $("tbody");
-  tb.innerHTML = "";
 
-  if(!list.length){
-    tb.innerHTML = `<tr><td colspan="5" class="muted">No warranties found.</td></tr>`;
-    return;
-  }
+    <div class="section">
+      <h3>Available placeholders</h3>
+      <div id="placeholderList"></div>
 
-  for(const r of list){
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>
-        <div style="font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${escapeHTML(r.Name)}">${escapeHTML(r.Name)}</div>
-        <div class="smallLine">${escapeHTML(r.Email || "")}</div>
-      </td>
-      <td>
-        <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${escapeHTML(r.Supplier)}">${escapeHTML(r.Supplier || "")}</div>
-        <div class="smallLine">${escapeHTML(r.Phone || "")}</div>
-      </td>
-      <td style="text-align:center">${progressHtml_(r.Step)}</td>
-      <td style="text-align:center">${statusPill_(r)}</td>
-      <td><button class="btn" type="button" data-open="${escapeHTML(String(r.ID))}">Open</button></td>
-    `;
-    tb.appendChild(tr);
-  }
+      <label for="newPlaceholder">Nieuwe placeholder</label>
+      <input type="text" id="newPlaceholder" placeholder="bijv. CompanyName">
+      <button class="btn secondary" onclick="addPlaceholder()">Placeholder toevoegen</button>
+      <div id="placeholderMessage"></div>
+      <p class="muted">Klik op een placeholder om deze in de inhoud te plakken als {{Placeholder}}.</p>
+    </div>
 
-  document.querySelectorAll("button[data-open]").forEach(btn=>{
-    btn.addEventListener("click", ()=> openWarranty_(btn.getAttribute("data-open")));
-  });
-}
+    <div class="section">
+      <h3>Ontvanger & placeholder values</h3>
 
-async function openWarranty_(id){
-  selected = rows.find(r => String(r.ID) === String(id));
-  if(!selected) return;
+      <div class="row">
+        <div>
+          <label for="toName">Naam</label>
+          <input type="text" id="toName" placeholder="bijv. Jelle van der Veen">
+        </div>
+        <div>
+          <label for="toEmail">Mailadres</label>
+          <input type="email" id="toEmail" placeholder="bijv. klant@bedrijf.nl">
+        </div>
+      </div>
 
-  $("noSelection").classList.add("hidden");
-  $("form").classList.remove("hidden");
+      <div class="row">
+        <div>
+          <label for="senderName">Afzender naam</label>
+          <input type="text" id="senderName" placeholder="bijv. Surfcenter">
+        </div>
+        <div>
+          <label for="replyTo">Reply-to mailadres</label>
+          <input type="email" id="replyTo" placeholder="bijv. info@surfcenter.nl">
+        </div>
+      </div>
 
-  $("nameLabel").textContent = selected.Name || "—";
-  $("emailLine").textContent = selected.Email || "";
-  $("supplierLabel").textContent = selected.Supplier || "—";
-  $("idLine").textContent = String(selected.ID || "");
+      <div id="placeholderInputs"></div>
 
-  $("statusSelect").value = selected.Status || "New";
-  $("notes").value = selected.Notes || "";
+      <button class="btn secondary" onclick="previewMail()">Preview maken</button>
 
-  setStepsUI_(selected.Step);
+      <label>Preview onderwerp</label>
+      <div id="previewSubject" class="preview-box"></div>
 
-  $("mailMsg").textContent = "";
-  $("mailSupplierMsg").textContent = "";
-  $("indepSendMsg").textContent = "";
-  $("msg").textContent = "";
-}
+      <label>Preview inhoud</label>
+      <div id="previewBody" class="preview-box"></div>
+    </div>
 
-async function saveWarranty_(){
-  if(!selected) return;
+    <div class="section">
+      <h3>CC collega's</h3>
+      <div id="ccList"></div>
 
-  const Status = $("statusSelect").value;
-  const Notes = ($("notes").value || "").trim();
-  const Step = normalizeStep(selected.Step);
+      <div class="row">
+        <div>
+          <label for="newColleagueName">Collega naam</label>
+          <input type="text" id="newColleagueName">
+        </div>
+        <div>
+          <label for="newColleagueEmail">Collega mail</label>
+          <input type="email" id="newColleagueEmail">
+        </div>
+      </div>
 
-  $("saveBtn").disabled = true;
-  $("msg").textContent = "Saving…";
+      <button class="btn secondary" onclick="addColleague()">Collega toevoegen</button>
+      <div id="colleagueMessage"></div>
+    </div>
 
-  const data = await api_(
-    `action=update` +
-    `&ID=${encodeURIComponent(String(selected.ID))}` +
-    `&Status=${encodeURIComponent(Status)}` +
-    `&Notes=${encodeURIComponent(Notes)}` +
-    `&Step=${encodeURIComponent(String(Step))}`
-  ).catch(()=>null);
+    <div class="section">
+      <button class="btn" onclick="sendMail()">E-mail verzenden</button>
+      <div id="sendMessage"></div>
+    </div>
 
-  if(data && data.ok){
-    selected.Status = Status;
-    selected.Notes = Notes;
-    selected.Step = Step;
+    <script>
+      let config = {
+        templates: [],
+        colleagues: [],
+        placeholders: []
+      };
 
-    await loadWarranties_();
-    await openWarranty_(String(selected.ID));
+      function init() {
+        google.script.run
+          .withSuccessHandler(loadUI)
+          .withFailureHandler(showError)
+          .getConfig();
+      }
 
-    $("msg").innerHTML = `<span style="color:var(--ok)">Saved ✓</span>`;
-  } else {
-    $("msg").innerHTML = `<span style="color:var(--bad)">Save failed.</span>`;
-  }
+      function loadUI(data) {
+        config = data;
+        renderTemplateSelect();
+        renderPlaceholders();
+        renderColleagues();
+        renderPlaceholderInputs();
+        loadSelectedTemplate();
+      }
 
-  $("saveBtn").disabled = false;
-}
+      function renderTemplateSelect() {
+        const select = document.getElementById('templateSelect');
+        select.innerHTML = '';
 
-async function deleteWarranty_(){
-  if(!selected) return;
-  if(!confirm("Delete this warranty?")) return;
+        const empty = document.createElement('option');
+        empty.value = '';
+        empty.textContent = '-- Nieuwe template --';
+        select.appendChild(empty);
 
-  $("deleteBtn").disabled = true;
-  $("msg").textContent = "Deleting…";
+        config.templates.forEach(t => {
+          const option = document.createElement('option');
+          option.value = t.templateKey;
+          option.textContent = `${t.templateKey} (${t.language || 'n/a'})`;
+          select.appendChild(option);
+        });
 
-  const data = await api_(`action=delete&id=${encodeURIComponent(String(selected.ID))}`).catch(()=>null);
+        select.onchange = loadSelectedTemplate;
+      }
 
-  if(data && data.ok){
-    selected = null;
-    $("form").classList.add("hidden");
-    $("noSelection").classList.remove("hidden");
-    $("msg").textContent = "";
-    await loadWarranties_();
-  } else {
-    $("msg").innerHTML = `<span style="color:var(--bad)">Delete failed.</span>`;
-  }
+      function loadSelectedTemplate() {
+        const key = document.getElementById('templateSelect').value;
+        const template = config.templates.find(t => t.templateKey === key);
 
-  $("deleteBtn").disabled = false;
-}
+        document.getElementById('templateKey').value = template ? template.templateKey : '';
+        document.getElementById('language').value = template ? template.language : '';
+        document.getElementById('subject').value = template ? template.subject : '';
+        document.getElementById('body').value = template ? template.body : '';
+      }
 
-async function createWarranty_(){
-  const Name = ($("newName").value||"").trim();
-  const Email = ($("newEmail").value||"").trim();
-  const Phone = ($("newPhone").value||"").trim();
-  const Supplier = ($("newSupplier").value||"").trim();
+      function renderPlaceholders() {
+        const list = document.getElementById('placeholderList');
+        list.innerHTML = '';
 
-  if(!Name || !Email || !Supplier){
-    $("createMsg").innerHTML = `<span style="color:var(--warn)">Name, Email, and Supplier are required.</span>`;
-    return;
-  }
+        config.placeholders.forEach(ph => {
+          const tag = document.createElement('span');
+          tag.className = 'placeholder-tag';
+          tag.textContent = `{{${ph}}}`;
+          tag.onclick = () => insertPlaceholder(ph);
+          list.appendChild(tag);
+        });
+      }
 
-  $("createBtn").disabled = true;
-  $("createMsg").textContent = "Adding…";
+      function renderPlaceholderInputs() {
+        const container = document.getElementById('placeholderInputs');
+        container.innerHTML = '';
 
-  const data = await api_(
-    `action=create` +
-    `&Name=${encodeURIComponent(Name)}` +
-    `&Email=${encodeURIComponent(Email)}` +
-    `&Phone=${encodeURIComponent(Phone)}` +
-    `&Supplier=${encodeURIComponent(Supplier)}` +
-    `&Status=${encodeURIComponent("New")}` +
-    `&Step=${encodeURIComponent("1")}` +
-    `&Notes=${encodeURIComponent("")}`
-  ).catch(()=>null);
+        config.placeholders.forEach(ph => {
+          const label = document.createElement('label');
+          label.textContent = ph;
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.id = `ph_${ph}`;
+          input.placeholder = `Waarde voor ${ph}`;
+          container.appendChild(label);
+          container.appendChild(input);
+        });
+      }
 
-  if(data && data.ok){
-    $("createMsg").innerHTML = `<span style="color:var(--ok)">Added ✓</span>`;
+      function renderColleagues() {
+        const container = document.getElementById('ccList');
+        container.innerHTML = '';
 
-    $("newName").value = "";
-    $("newEmail").value = "";
-    $("newPhone").value = "";
-    $("newSupplier").value = "";
+        config.colleagues.forEach(c => {
+          const div = document.createElement('div');
+          div.className = 'cc-item';
 
-    $("newModal").classList.add("hidden");
-    await loadWarranties_();
-    if(data.id) await openWarranty_(String(data.id));
-  } else {
-    $("createMsg").innerHTML = `<span style="color:var(--bad)">Failed: ${escapeHTML((data && data.error) || "Unknown")}</span>`;
-  }
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.value = c.email;
+          checkbox.id = 'cc_' + c.email;
 
-  $("createBtn").disabled = false;
-}
+          const label = document.createElement('label');
+          label.htmlFor = checkbox.id;
+          label.style.display = 'inline';
+          label.style.fontWeight = 'normal';
+          label.textContent = ` ${c.name} (${c.email})`;
 
-/* ---------- events ---------- */
-$("search").addEventListener("input", renderList_);
+          div.appendChild(checkbox);
+          div.appendChild(label);
+          container.appendChild(div);
+        });
+      }
 
-$("saveBtn").addEventListener("click", saveWarranty_);
-$("deleteBtn").addEventListener("click", deleteWarranty_);
+      function insertPlaceholder(ph) {
+        const textarea = document.getElementById('body');
+        const token = `{{${ph}}}`;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+        textarea.value = text.substring(0, start) + token + text.substring(end);
+        textarea.focus();
+        textarea.selectionStart = textarea.selectionEnd = start + token.length;
+      }
 
-$("newWarrantyBtn").addEventListener("click", ()=>{ $("createMsg").textContent=""; $("newModal").classList.remove("hidden"); });
-$("newClose").addEventListener("click", ()=> $("newModal").classList.add("hidden"));
-$("newModal").addEventListener("click", (e)=>{ if(e.target === $("newModal")) $("newModal").classList.add("hidden"); });
+      function collectPlaceholderValues() {
+        const values = {};
+        config.placeholders.forEach(ph => {
+          values[ph] = document.getElementById(`ph_${ph}`)?.value || '';
+        });
+        return values;
+      }
 
-$("createBtn").addEventListener("click", createWarranty_);
+      function collectSelectedCc() {
+        return config.colleagues
+          .filter(c => {
+            const el = document.getElementById('cc_' + c.email);
+            return el && el.checked;
+          })
+          .map(c => c.email);
+      }
 
-$("step1Btn").addEventListener("click", ()=> { if(selected){ setStepsUI_(1); } });
-$("step2Btn").addEventListener("click", ()=> { if(selected){ setStepsUI_(2); } });
-$("step3Btn").addEventListener("click", ()=> { if(selected){ setStepsUI_(3); } });
+      function saveTemplate() {
+        const payload = {
+          templateKey: document.getElementById('templateKey').value.trim(),
+          language: document.getElementById('language').value.trim(),
+          subject: document.getElementById('subject').value,
+          body: document.getElementById('body').value
+        };
 
-$("indepSave").addEventListener("click", saveTemplate_);
-$("indepCancel").addEventListener("click", resetIndepEditor_);
+        google.script.run
+          .withSuccessHandler(res => {
+            document.getElementById('templateMessage').innerHTML = `<div class="success">${res.message}</div>`;
+            refreshConfig();
+          })
+          .withFailureHandler(err => {
+            document.getElementById('templateMessage').innerHTML = `<div class="error">${err.message}</div>`;
+          })
+          .saveTemplate(payload);
+      }
 
-$("mc_en").addEventListener("click", (e)=> mailCustomer_("en", e.currentTarget));
-$("mc_nl").addEventListener("click", (e)=> mailCustomer_("nl", e.currentTarget));
-$("mc_de").addEventListener("click", (e)=> mailCustomer_("de", e.currentTarget));
-$("mc_fr").addEventListener("click", (e)=> mailCustomer_("fr", e.currentTarget));
+      function addColleague() {
+        const payload = {
+          name: document.getElementById('newColleagueName').value.trim(),
+          email: document.getElementById('newColleagueEmail').value.trim()
+        };
 
-$("ms_en").addEventListener("click", (e)=> mailSupplier_("en", e.currentTarget));
-$("ms_nl").addEventListener("click", (e)=> mailSupplier_("nl", e.currentTarget));
+        google.script.run
+          .withSuccessHandler(res => {
+            document.getElementById('colleagueMessage').innerHTML = `<div class="success">${res.message}</div>`;
+            document.getElementById('newColleagueName').value = '';
+            document.getElementById('newColleagueEmail').value = '';
+            refreshConfig();
+          })
+          .withFailureHandler(err => {
+            document.getElementById('colleagueMessage').innerHTML = `<div class="error">${err.message}</div>`;
+          })
+          .addColleague(payload);
+      }
 
-/* mail picker */
-$("pickGmail").addEventListener("click", ()=>{
-  if(!pendingMail) return;
-  openGmailCompose(pendingMail.to, pendingMail.subject, pendingMail.body);
-  closeMailPicker();
-});
-$("pickApple").addEventListener("click", ()=>{
-  if(!pendingMail) return;
-  openAppleMail(pendingMail.to, pendingMail.subject, pendingMail.body);
-  closeMailPicker();
-});
-$("pickCancel").addEventListener("click", closeMailPicker);
-$("mailPicker").addEventListener("click", (e)=>{ if(e.target === $("mailPicker")) closeMailPicker(); });
+      function addPlaceholder() {
+        const value = document.getElementById('newPlaceholder').value.trim();
 
-/* init */
-(async function init(){
-  bindTokenButtons_();
+        google.script.run
+          .withSuccessHandler(res => {
+            document.getElementById('placeholderMessage').innerHTML = `<div class="success">${res.message}</div>`;
+            document.getElementById('newPlaceholder').value = '';
+            refreshConfig();
+          })
+          .withFailureHandler(err => {
+            document.getElementById('placeholderMessage').innerHTML = `<div class="error">${err.message}</div>`;
+          })
+          .addPlaceholder(value);
+      }
 
-  if(!API_BASE || API_BASE.includes("PASTE_YOUR_GOOGLE_APPS_SCRIPT_EXEC_URL_HERE")){
-    $("tbody").innerHTML = `<tr><td colspan="5" class="muted">
-      Set <b>API_BASE</b> in index.html to your Apps Script <code>/exec</code> URL.
-    </td></tr>`;
-    $("indepTemplatesList").innerHTML = `<div class="muted" style="font-size:13px">Set API_BASE first.</div>`;
-    return;
-  }
+      function previewMail() {
+        const payload = {
+          subject: document.getElementById('subject').value,
+          body: document.getElementById('body').value,
+          placeholderValues: collectPlaceholderValues()
+        };
 
-  await loadTemplates_();
-  await loadWarranties_();
-})();
-</script>
-</body>
+        google.script.run
+          .withSuccessHandler(res => {
+            document.getElementById('previewSubject').textContent = res.subject || '';
+            document.getElementById('previewBody').textContent = res.body || '';
+          })
+          .withFailureHandler(err => {
+            document.getElementById('sendMessage').innerHTML = `<div class="error">${err.message}</div>`;
+          })
+          .previewTemplate(payload);
+      }
+
+      function sendMail() {
+        const payload = {
+          toName: document.getElementById('toName').value.trim(),
+          toEmail: document.getElementById('toEmail').value.trim(),
+          senderName: document.getElementById('senderName').value.trim(),
+          replyTo: document.getElementById('replyTo').value.trim(),
+          subject: document.getElementById('subject').value,
+          body: document.getElementById('body').value,
+          cc: collectSelectedCc(),
+          placeholderValues: collectPlaceholderValues()
+        };
+
+        google.script.run
+          .withSuccessHandler(res => {
+            document.getElementById('sendMessage').innerHTML = `<div class="success">${res.message}</div>`;
+          })
+          .withFailureHandler(err => {
+            document.getElementById('sendMessage').innerHTML = `<div class="error">${err.message}</div>`;
+          })
+          .sendTemplateEmail(payload);
+      }
+
+      function refreshConfig() {
+        google.script.run
+          .withSuccessHandler(loadUI)
+          .withFailureHandler(showError)
+          .getConfig();
+      }
+
+      function showError(err) {
+        alert(err.message || err);
+      }
+
+      init();
+    </script>
+  </body>
 </html>
