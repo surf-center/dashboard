@@ -92,11 +92,13 @@ main{padding:24px 32px 48px;max-width:1400px;margin:0 auto;}
 .compare-rows{display:flex;flex-direction:column;gap:10px;}
 .cmp-row{display:grid;grid-template-columns:48px 1fr auto auto;gap:12px;align-items:center;}
 .cmp-year{font-size:13px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;}
-.cmp-bar{height:24px;background:var(--surface2);border-radius:6px;overflow:hidden;position:relative;}
-.cmp-fill{height:100%;background:linear-gradient(90deg,var(--accent),#333);border-radius:6px;transition:width 0.4s;}
-.cmp-row.current .cmp-fill{background:linear-gradient(90deg,var(--accent),#000);}
-.cmp-row.partial .cmp-fill{background:repeating-linear-gradient(45deg,#000,#000 6px,#1a1a1a 6px,#1a1a1a 12px);}
-.cmp-value{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;min-width:78px;text-align:right;}
+.cmp-bar{height:24px;background:var(--surface2);border-radius:6px;overflow:hidden;position:relative;display:flex;}
+.cmp-fill{height:100%;background:linear-gradient(90deg,var(--accent),#333);border-radius:6px 0 0 6px;transition:width 0.4s;}
+.cmp-expected{height:100%;background:repeating-linear-gradient(45deg,#e2e5e8,#e2e5e8 6px,#edf0f3 6px,#edf0f3 12px);transition:width 0.4s;border-radius:0 6px 6px 0;}
+.cmp-row.current .cmp-fill{background:linear-gradient(90deg,var(--accent),#000);border-radius:6px 0 0 6px;}
+.cmp-row.partial .cmp-fill{border-radius:6px 0 0 6px;}
+.cmp-value{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;min-width:78px;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:1px;}
+.cmp-value .exp{font-size:10px;font-weight:600;color:#9ca3af;}
 .cmp-delta{font-size:11px;font-weight:700;min-width:62px;text-align:right;font-variant-numeric:tabular-nums;}
 .cmp-delta.up{color:var(--success);}
 .cmp-delta.down{color:var(--down);}
@@ -204,7 +206,6 @@ main{padding:24px 32px 48px;max-width:1400px;margin:0 auto;}
       <div class="period-row">
         <div class="grain-label">Grain</div>
         <div class="grain-chips" id="grainChips">
-          <button class="grain-chip" data-grain="day">Day</button>
           <button class="grain-chip" data-grain="week">Week</button>
           <button class="grain-chip active" data-grain="month">Month</button>
           <button class="grain-chip" data-grain="quarter">Quarter</button>
@@ -217,12 +218,6 @@ main{padding:24px 32px 48px;max-width:1400px;margin:0 auto;}
           <button class="nav-btn" id="navNext" title="Next">›</button>
         </div>
         <div class="period-picker" id="periodPicker"></div>
-      </div>
-      <div class="period-row">
-        <div class="grain-label">Status</div>
-        <div class="status-row" id="statusPills"></div>
-        <div class="hdr-spacer"></div>
-        <button class="hdr-logout" id="btnResetStatus" style="margin:0;">Reset status</button>
       </div>
     </div>
 
@@ -503,6 +498,48 @@ window.__SHIPPING_COUNTS = {"Verzenden - Verzenden":5328,"Verzenden - Liefern":3
     return state.statuses.has(o.status);
   }
 
+  // Elapsed share (0..1) of the currently-in-progress period for the selected grain.
+  // Returns 1 if the period has completed (or doesn't apply), which disables projection.
+  function currentElapsedRatio(){
+    const g = state.grain;
+    const ref = state.refDate;
+    if (g === 'week') {
+      const d = ref.getDay() || 7; // 1..7 (Mon..Sun)
+      return d / 7;
+    }
+    if (g === 'month') {
+      const y = ref.getFullYear(), m = ref.getMonth()+1;
+      if ((state.month || m) !== m || (state.year || y) !== y) return 1;
+      return ref.getDate() / daysInMonth(y, m);
+    }
+    if (g === 'quarter') {
+      const y = ref.getFullYear();
+      const q = state.quarter || (Math.floor(ref.getMonth()/3)+1);
+      if (q !== Math.floor(ref.getMonth()/3)+1 || (state.year || y) !== y) return 1;
+      const start = new Date(y, (q-1)*3, 1);
+      const end   = new Date(y, q*3, 0, 23, 59, 59);
+      const total = (end - start) / 86400000;
+      const elapsed = (ref - start) / 86400000;
+      return Math.max(0, Math.min(1, elapsed / total));
+    }
+    if (g === 'year') {
+      const y = ref.getFullYear();
+      const start = new Date(y, 0, 1);
+      const end   = new Date(y, 11, 31, 23, 59, 59);
+      const total = (end - start) / 86400000;
+      const elapsed = (ref - start) / 86400000;
+      return Math.max(0, Math.min(1, elapsed / total));
+    }
+    if (g === 'range') {
+      if (!state.rangeFrom || !state.rangeTo) return 1;
+      if (ref >= state.rangeTo) return 1;
+      const total = (state.rangeTo - state.rangeFrom) / 86400000;
+      const elapsed = Math.max(0, (ref - state.rangeFrom) / 86400000);
+      return Math.max(0.01, Math.min(1, elapsed / total));
+    }
+    return 1;
+  }
+
   // ============ RENDER ============
   const charts = {};
   function dc(id){ if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
@@ -590,7 +627,13 @@ window.__SHIPPING_COUNTS = {"Verzenden - Verzenden":5328,"Verzenden - Liefern":3
 
   function renderCompareRows(elId, rows, key, fmt){
     const el = document.getElementById(elId);
-    const maxV = Math.max(1, ...rows.map(r => r.agg[key]));
+    // Compute projected value for the partial row (if any)
+    const elapsed = currentElapsedRatio();
+    rows.forEach(r => {
+      r.expected = (r.isPartial && elapsed > 0 && elapsed < 1) ? (r.agg[key] / elapsed) : null;
+    });
+    // Max across actual values AND projected extensions, so bars scale fairly
+    const maxV = Math.max(1, ...rows.map(r => Math.max(r.agg[key], r.expected || 0)));
     const html = [];
     rows.forEach((r, i) => {
       const cur = r.agg[key];
@@ -602,19 +645,31 @@ window.__SHIPPING_COUNTS = {"Verzenden - Verzenden":5328,"Verzenden - Liefern":3
         ? '<span class="cmp-delta ' + trendCls(delta) + '">' + trendIcon(delta) + ' ' + pct(delta, 0) + '</span>'
         : '<span class="cmp-delta neutral">—</span>';
       const rowCls = 'cmp-row' + (r.isCurrent ? ' current' : '') + (r.isPartial ? ' partial' : '');
-      const widthPct = maxV > 0 ? (cur / maxV * 100) : 0;
-      const valText = cur > 0 ? fmt(cur) : (r.isPartial ? fmt(cur) : '<span class="cmp-empty">—</span>');
+      const actualPct = maxV > 0 ? (cur / maxV * 100) : 0;
+      const expectedExtraPct = (r.expected !== null && r.expected > cur) ? ((r.expected - cur) / maxV * 100) : 0;
+      const barHtml = '<div class="cmp-bar">' +
+          '<div class="cmp-fill" style="width:' + actualPct + '%;"></div>' +
+          (expectedExtraPct > 0 ? '<div class="cmp-expected" style="width:' + expectedExtraPct + '%;" title="Expected at current pace"></div>' : '') +
+        '</div>';
+      let valHtml;
+      if (cur <= 0 && !r.isPartial) {
+        valHtml = '<span class="cmp-value"><span class="cmp-empty">—</span></span>';
+      } else if (r.expected !== null) {
+        valHtml = '<span class="cmp-value"><span>' + fmt(cur) + '</span><span class="exp" title="Projected at current pace">exp. ' + fmt(r.expected) + '</span></span>';
+      } else {
+        valHtml = '<span class="cmp-value"><span>' + fmt(cur) + '</span></span>';
+      }
       html.push(
         '<div class="' + rowCls + '">' +
           '<span class="cmp-year">' + r.label + (r.isPartial ? '*' : '') + '</span>' +
-          '<div class="cmp-bar"><div class="cmp-fill" style="width:' + widthPct + '%;"></div></div>' +
-          '<span class="cmp-value">' + valText + '</span>' +
+          barHtml +
+          valHtml +
           deltaHtml +
         '</div>'
       );
     });
     const hasPartial = rows.some(r => r.isPartial);
-    if (hasPartial) html.push('<div class="cmp-partial-note">* Current period in progress — partial data</div>');
+    if (hasPartial) html.push('<div class="cmp-partial-note">* Current period in progress · light-gray bar = expected total at current pace</div>');
     el.innerHTML = html.join('');
   }
 
@@ -624,17 +679,28 @@ window.__SHIPPING_COUNTS = {"Verzenden - Verzenden":5328,"Verzenden - Liefern":3
     const prevKey = spec.useOffset ? -1 : (curKey - 1);
     const cur = aggForYear(spec, curKey);
     const prev = aggForYear(spec, prevKey);
-    const setMini = (id, valTxt, delta, sub='vs prior year') => {
-      document.getElementById(id).textContent = valTxt;
+    const elapsed = currentElapsedRatio();
+    const isPartial = spec.isPartial ? spec.isPartial(curKey) : false;
+    const project = v => (isPartial && elapsed > 0 && elapsed < 1) ? (v / elapsed) : null;
+    const setMini = (id, valTxt, delta, expTxt=null) => {
+      const valEl = document.getElementById(id);
+      if (expTxt) {
+        valEl.innerHTML = valTxt + ' <span style="font-size:12px;font-weight:600;color:#9ca3af;margin-left:4px;" title="Expected at current pace">· exp. ' + expTxt + '</span>';
+      } else {
+        valEl.textContent = valTxt;
+      }
       const subEl = document.getElementById(id + 'Sub');
-      if (delta === null) subEl.innerHTML = '<span class="delta neutral">—</span> ' + sub;
-      else subEl.innerHTML = '<span class="delta ' + trendCls(delta) + '">' + trendIcon(delta) + ' ' + pct(delta, 0) + '</span> ' + sub;
+      if (delta === null) subEl.innerHTML = '<span class="delta neutral">—</span> vs prior year';
+      else subEl.innerHTML = '<span class="delta ' + trendCls(delta) + '">' + trendIcon(delta) + ' ' + pct(delta, 0) + '</span> vs prior year';
     };
-    const dh = (a, b) => b > 0 ? ((a/b)-1)*100 : (a > 0 ? null : null);
-    setMini('kpiNet', fmtEur(cur.net), dh(cur.net, prev.net));
-    setMini('kpiOrd', fmtNum(cur.count), dh(cur.count, prev.count));
-    setMini('kpiAov', fmtEur(cur.aov), dh(cur.aov, prev.aov));
-    setMini('kpiCust', fmtNum(cur.customerCount), dh(cur.customerCount, prev.customerCount));
+    const dh = (a, b) => b > 0 ? ((a/b)-1)*100 : null;
+    const expNet = project(cur.net);
+    const expOrd = project(cur.count);
+    const expCust = project(cur.customerCount);
+    setMini('kpiNet',  fmtEur(cur.net),           dh(cur.net, prev.net),           expNet  !== null ? fmtEur(expNet) : null);
+    setMini('kpiOrd',  fmtNum(cur.count),         dh(cur.count, prev.count),       expOrd  !== null ? fmtNum(Math.round(expOrd)) : null);
+    setMini('kpiAov',  fmtEur(cur.aov),           dh(cur.aov, prev.aov),           null); // AOV doesn't project
+    setMini('kpiCust', fmtNum(cur.customerCount), dh(cur.customerCount, prev.customerCount), expCust !== null ? fmtNum(Math.round(expCust)) : null);
   }
 
   function renderTrend(){
@@ -939,22 +1005,6 @@ window.__SHIPPING_COUNTS = {"Verzenden - Verzenden":5328,"Verzenden - Liefern":3
     render();
   }
 
-  function renderStatusPills(){
-    const host = document.getElementById('statusPills');
-    host.innerHTML = '';
-    STATUSES.forEach(s => {
-      const b = document.createElement('button');
-      b.className = 'status-pill' + (state.statuses.has(s) ? ' active' : '');
-      b.textContent = s;
-      b.addEventListener('click', () => {
-        if (state.statuses.has(s)) state.statuses.delete(s); else state.statuses.add(s);
-        b.classList.toggle('active');
-        render();
-      });
-      host.appendChild(b);
-    });
-  }
-
   // ============ CSV UPLOAD ============
   function showGate(show){
     document.getElementById('gate').classList.toggle('hidden', !show);
@@ -995,53 +1045,112 @@ window.__SHIPPING_COUNTS = {"Verzenden - Verzenden":5328,"Verzenden - Liefern":3
   }
 
   function parseCsvRows(rows){
-    // Tolerant: map common column aliases
-    const findCol = (obj, aliases) => {
-      for (const a of aliases) {
-        for (const k of Object.keys(obj)) {
-          if (k.toLowerCase().replace(/\s+/g, '') === a.toLowerCase().replace(/\s+/g, '')) return k;
-        }
+    if (!rows.length) throw new Error('CSV appears to be empty.');
+    const norm = s => (s||'').toString().toLowerCase().replace(/[^a-z0-9]/g, '');
+    const findCol = (obj, patterns) => {
+      const keys = Object.keys(obj);
+      const normKeys = keys.map(k => ({ raw: k, n: norm(k) }));
+      // Pass 1: exact normalized match
+      for (const p of patterns) {
+        const pn = norm(p);
+        for (const k of normKeys) if (k.n === pn) return k.raw;
+      }
+      // Pass 2: substring (pattern contained in key name)
+      for (const p of patterns) {
+        const pn = norm(p);
+        if (!pn) continue;
+        for (const k of normKeys) if (k.n.includes(pn)) return k.raw;
       }
       return null;
     };
-    if (!rows.length) return [];
     const sample = rows[0];
-    const cId = findCol(sample, ['id','orderid','order_id','order #']);
-    const cDate = findCol(sample, ['date','orderdate','purchaseddate','purchased on']);
-    const cCust = findCol(sample, ['customer','customername','bill_to_name','name']);
-    const cStat = findCol(sample, ['status','orderstatus']);
-    const cRev = findCol(sample, ['revenue','grand_total','total','grandtotal']);
-    const cRef = findCol(sample, ['refund','refund_total','refunded']);
-    const cPay = findCol(sample, ['payment','paymentmethod','payment_method']);
-    const cCntry = findCol(sample, ['country','shipping_country','ship_country']);
+    const cId    = findCol(sample, ['increment id','order id','order number','order #','id']);
+    const cDate  = findCol(sample, ['purchased on','order date','purchased date','created at','date']);
+    const cCust  = findCol(sample, ['bill-to name','billing name','customer name','customer','bill to','name']);
+    const cStat  = findCol(sample, ['order status','status']);
+    const cRev   = findCol(sample, ['grand total base','grand total purchased','grand total','total paid','revenue','order total','grand total (base)']);
+    const cRef   = findCol(sample, ['total refunded base','total refunded','refunded','refund total','refund']);
+    const cPay   = findCol(sample, ['payment method','payment']);
+    const cCntry = findCol(sample, ['shipping country','ship to country','ship country','delivery country','billing country','country']);
+
     const parseNum = v => {
       if (v == null) return 0;
-      let s = String(v).trim().replace(/[^\d,.\-]/g, '');
-      if (s.indexOf(',') > -1 && s.indexOf('.') > -1) s = s.replace(/,/g, '');
-      else if (s.indexOf(',') > -1 && s.indexOf('.') === -1) s = s.replace(/,/g, '.');
+      let s = String(v).trim();
+      if (!s) return 0;
+      s = s.replace(/[^\d,.\-]/g, '');
+      if (!s) return 0;
+      const hasComma = s.indexOf(',') > -1;
+      const hasDot = s.indexOf('.') > -1;
+      if (hasComma && hasDot) {
+        // Last occurring separator is the decimal
+        if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
+          // European: 1.234,56 -> 1234.56
+          s = s.replace(/\./g, '').replace(',', '.');
+        } else {
+          // US: 1,234.56 -> 1234.56
+          s = s.replace(/,/g, '');
+        }
+      } else if (hasComma) {
+        // Ambiguous: if >3 digits after comma, treat as thousand separator
+        const parts = s.split(',');
+        if (parts.length === 2 && parts[1].length === 3 && !/^\d{1,3}$/.test(parts[0])) {
+          s = s.replace(/,/g, '');
+        } else {
+          s = s.replace(',', '.');
+        }
+      }
       const n = parseFloat(s);
       return isFinite(n) ? n : 0;
     };
+
     const parseDt = v => {
       if (!v) return null;
-      const d = new Date(v);
-      if (!isNaN(d)) return d.toISOString().slice(0, 10);
+      const raw = String(v).trim();
+      if (!raw) return null;
+      // Try ISO first: YYYY-MM-DD or YYYY-MM-DD HH:mm:ss
+      const iso = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+      if (iso) return iso[1] + '-' + iso[2].padStart(2,'0') + '-' + iso[3].padStart(2,'0');
+      // Try D/M/YYYY or M/D/YYYY — prefer D/M/YYYY (European)
+      const slash = raw.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/);
+      if (slash) {
+        let d = +slash[1], m = +slash[2], y = +slash[3];
+        if (y < 100) y += 2000;
+        // If first part > 12, it must be day
+        if (d > 12 && m <= 12) { /* already D/M */ }
+        else if (m > 12 && d <= 12) { const t = d; d = m; m = t; }
+        return y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+      }
+      // Fallback to Date()
+      const dObj = new Date(raw);
+      if (!isNaN(dObj)) return dObj.toISOString().slice(0, 10);
       return null;
     };
+
+    // Guard: must have date column at minimum
+    if (!cDate) {
+      const headers = Object.keys(sample).slice(0, 20).join(', ');
+      throw new Error('No date column found. Looked for: Purchased On / Order Date / Date. Detected headers: ' + headers);
+    }
+
     const out = [];
+    let badDates = 0;
     for (const r of rows) {
       const d = parseDt(r[cDate]);
-      if (!d) continue;
+      if (!d) { badDates++; continue; }
       out.push({
         id: (cId ? r[cId] : '') || '',
         date: d,
         customer: (cCust ? r[cCust] : '') || '',
         status: (cStat ? r[cStat] : '') || '',
-        revenue: parseNum(r[cRev]),
-        refund: parseNum(r[cRef]),
+        revenue: parseNum(cRev ? r[cRev] : 0),
+        refund: parseNum(cRef ? r[cRef] : 0),
         payment: (cPay ? r[cPay] : '') || '',
         country: (cCntry ? r[cCntry] : 'Unknown') || 'Unknown',
       });
+    }
+    if (out.length === 0) {
+      const headers = Object.keys(sample).slice(0, 20).join(', ');
+      throw new Error('Could not parse any rows (all ' + badDates + ' had unreadable dates in "' + cDate + '"). Headers: ' + headers);
     }
     return out;
   }
@@ -1076,12 +1185,6 @@ window.__SHIPPING_COUNTS = {"Verzenden - Verzenden":5328,"Verzenden - Liefern":3
     document.getElementById('navPrev').addEventListener('click', () => stepPeriod(-1));
     document.getElementById('navNext').addEventListener('click', () => stepPeriod(1));
 
-    renderStatusPills();
-    document.getElementById('btnResetStatus').addEventListener('click', () => {
-      state.statuses = new Set(['Complete','Processing']);
-      renderStatusPills();
-      render();
-    });
     document.getElementById('btnLogout').addEventListener('click', () => {
       state.orders = [];
       window.__ORDERS = undefined;
