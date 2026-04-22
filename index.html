@@ -5,23 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Surfcenter Analytics</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#080b0f;--surface:#0f1218;--surface2:#151820;--border:#1a1e28;--accent:#e8ff47;--a2:#47c8ff;--a3:#ff6b6b;--success:#4ade80;--warn:#fb923c;--purple:#c084fc;--text:#dde1ec;--muted:#4a5068;}
+:root{--bg:#ffffff;--surface:#ffffff;--surface2:#fafafa;--border:#e5e7eb;--accent:#000000;--a2:#3b82f6;--a3:#ef4444;--success:#10b981;--warn:#f59e0b;--purple:#8b5cf6;--text:#111111;--muted:#6b7280;}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;font-size:14px;min-height:100vh;}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 50% 35% at 15% 8%,rgba(232,255,71,0.035) 0%,transparent 60%),radial-gradient(ellipse 40% 30% at 85% 85%,rgba(71,200,255,0.03) 0%,transparent 60%);pointer-events:none;z-index:0;}
+body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;font-weight:500;font-size:14px;min-height:100vh;-webkit-font-smoothing:antialiased;}
 
-header{display:flex;align-items:center;justify-content:space-between;padding:14px 36px;border-bottom:1px solid var(--border);background:rgba(15,18,24,0.97);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100;}
+header{display:flex;align-items:center;justify-content:space-between;padding:16px 36px;border-bottom:1px solid var(--border);background:#ffffff;position:sticky;top:0;z-index:100;}
 .logo-wrap{display:flex;align-items:center;gap:12px;}
 .logo-img{height:36px;width:auto;object-fit:contain;}
 .logo-fallback{width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;display:none;}
-.logo-text{font-family:'DM Serif Display',serif;font-size:19px;letter-spacing:-0.3px;}
+.logo-text{font-family:'Poppins',sans-serif;font-weight:700;font-size:19px;letter-spacing:-0.3px;}
 .nav-tabs{display:flex;gap:2px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:3px;}
-.nav-tab{padding:7px 18px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.2s;border:none;background:transparent;font-family:'Sora',sans-serif;}
-.nav-tab.active{background:var(--accent);color:#080b0f;}
+.nav-tab{padding:7px 18px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.2s;border:none;background:transparent;font-family:'Poppins',sans-serif;}
+.nav-tab.active{background:var(--accent);color:#ffffff;}
 .nav-tab:hover:not(.active){color:var(--text);}
-.hdr-meta{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);text-align:right;line-height:1.6;}
+.hdr-meta{font-family:'Poppins',sans-serif;font-weight:500;font-size:11px;color:var(--muted);text-align:right;line-height:1.6;}
 .hdr-meta b{color:var(--accent);}
 
 main{padding:26px 36px;position:relative;z-index:1;}
@@ -31,9 +31,9 @@ main{padding:26px 36px;position:relative;z-index:1;}
 .filters{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap;align-items:center;}
 .filter-pill{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 14px;}
 .filter-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);white-space:nowrap;}
-.filter-select{background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;cursor:pointer;outline:none;}
-option{background:#151820;}
-.stats-pill{margin-left:auto;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;}
+.filter-select{background:transparent;border:none;color:var(--text);font-family:'Poppins',sans-serif;font-size:13px;cursor:pointer;outline:none;}
+option{background:#ffffff;color:#111111;}
+.stats-pill{margin-left:auto;font-family:'Poppins',sans-serif;font-weight:500;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;}
 .stats-pill b{color:var(--text);}
 
 /* KPI GRID */
@@ -41,14 +41,14 @@ option{background:#151820;}
 .kpi-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
 .kpi-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
 .kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden;transition:all 0.25s;animation:up 0.4s ease both;}
-.kpi:hover{border-color:rgba(232,255,71,0.25);transform:translateY(-1px);}
+.kpi:hover{border-color:#000000;transform:translateY(-1px);}
 .kpi::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent);transform:scaleX(0);transform-origin:left;transition:transform 0.3s;}
 .kpi:hover::after{transform:scaleX(1);}
 .kpi-icon{font-size:16px;margin-bottom:8px;display:block;}
-.kpi-val{font-family:'DM Serif Display',serif;font-size:24px;line-height:1;margin-bottom:3px;color:var(--text);}
+.kpi-val{font-family:'Poppins',sans-serif;font-weight:700;font-size:24px;line-height:1;margin-bottom:3px;color:var(--text);}
 .kpi-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:5px;}
-.kpi-sub{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);}
-.kpi-badge{display:inline-flex;align-items:center;gap:3px;font-family:'DM Mono',monospace;font-size:10px;margin-top:5px;padding:2px 7px;border-radius:3px;font-weight:600;}
+.kpi-sub{font-family:'Poppins',sans-serif;font-weight:500;font-size:10px;color:var(--muted);}
+.kpi-badge{display:inline-flex;align-items:center;gap:3px;font-family:'Poppins',sans-serif;font-weight:500;font-size:10px;margin-top:5px;padding:2px 7px;border-radius:3px;font-weight:600;}
 .kpi-badge.up{background:rgba(74,222,128,0.12);color:var(--success);}
 .kpi-badge.down{background:rgba(255,107,107,0.12);color:var(--a3);}
 .kpi-badge.neutral{background:rgba(74,160,200,0.12);color:var(--a2);}
@@ -64,7 +64,7 @@ option{background:#151820;}
 /* CARD */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px 24px;animation:up 0.4s ease both;}
 .card-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:3px;}
-.card-title{font-family:'DM Serif Display',serif;font-size:17px;color:var(--text);margin-bottom:16px;}
+.card-title{font-family:'Poppins',sans-serif;font-weight:700;font-size:17px;color:var(--text);margin-bottom:16px;}
 
 /* DIVIDER */
 .divider{display:flex;align-items:center;gap:14px;margin:18px 0 14px;}
@@ -76,19 +76,19 @@ option{background:#151820;}
 .hbar-lbl{font-size:11px;color:var(--text);width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;}
 .hbar-track{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
 .hbar-fill{height:100%;border-radius:3px;}
-.hbar-val{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);width:72px;text-align:right;flex-shrink:0;}
+.hbar-val{font-family:'Poppins',sans-serif;font-weight:500;font-size:10px;color:var(--muted);width:72px;text-align:right;flex-shrink:0;}
 
 /* CUSTOMER LIST */
 .cust-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
 .cust-row:last-child{border:none;}
-.cust-rank{font-family:'DM Serif Display',serif;font-size:18px;color:var(--border);width:22px;text-align:center;flex-shrink:0;}
+.cust-rank{font-family:'Poppins',sans-serif;font-weight:700;font-size:18px;color:var(--border);width:22px;text-align:center;flex-shrink:0;}
 .cust-av{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
 .cust-info{flex:1;min-width:0;}
 .cust-name{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.cust-email{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cust-email{font-family:'Poppins',sans-serif;font-weight:500;font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .cust-stats{text-align:right;flex-shrink:0;}
-.cust-rev{font-family:'DM Serif Display',serif;font-size:15px;color:var(--accent);}
-.cust-sub{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);}
+.cust-rev{font-family:'Poppins',sans-serif;font-weight:700;font-size:15px;color:var(--accent);}
+.cust-sub{font-family:'Poppins',sans-serif;font-weight:500;font-size:10px;color:var(--muted);}
 
 /* HEATMAP */
 .hmap-cell{border-radius:3px;height:20px;cursor:default;transition:transform 0.15s;}
@@ -97,10 +97,10 @@ option{background:#151820;}
 /* TABLE */
 .tbl-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
 .tbl-head-row{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--border);}
-.tbl-title{font-family:'DM Serif Display',serif;font-size:18px;}
+.tbl-title{font-family:'Poppins',sans-serif;font-weight:700;font-size:18px;}
 .tbl-controls{display:flex;gap:8px;align-items:center;}
-.tbl-sel{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 10px;font-family:'Sora',sans-serif;font-size:12px;cursor:pointer;}
-.tbl-search{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;font-family:'Sora',sans-serif;font-size:12px;width:190px;transition:border-color 0.2s;}
+.tbl-sel{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 10px;font-family:'Poppins',sans-serif;font-size:12px;cursor:pointer;}
+.tbl-search{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;font-family:'Poppins',sans-serif;font-size:12px;width:190px;transition:border-color 0.2s;}
 .tbl-search:focus{outline:none;border-color:var(--accent);}
 .tbl-search::placeholder{color:var(--muted);}
 table{width:100%;border-collapse:collapse;}
@@ -110,7 +110,7 @@ thead th.sorted{color:var(--accent);}
 tbody tr{border-bottom:1px solid var(--border);transition:background 0.12s;}
 tbody tr:hover{background:var(--surface2);}
 tbody tr:last-child{border:none;}
-tbody td{padding:10px 20px;font-size:12px;font-family:'DM Mono',monospace;white-space:nowrap;}
+tbody td{padding:10px 20px;font-size:12px;font-family:'Poppins',sans-serif;font-weight:500;white-space:nowrap;}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;}
 .badge::before{content:'';width:4px;height:4px;border-radius:50%;background:currentColor;}
 .b-complete{background:rgba(74,222,128,0.1);color:var(--success);}
@@ -120,38 +120,84 @@ tbody td{padding:10px 20px;font-size:12px;font-family:'DM Mono',monospace;white-
 .b-processing{background:rgba(71,200,255,0.1);color:var(--a2);}
 .b-hold{background:rgba(192,132,252,0.1);color:var(--purple);}
 .tbl-footer{display:flex;align-items:center;justify-content:space-between;padding:11px 20px;border-top:1px solid var(--border);background:var(--surface2);}
-.tbl-info{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);}
+.tbl-info{font-family:'Poppins',sans-serif;font-weight:500;font-size:11px;color:var(--muted);}
 .pager{display:flex;gap:3px;}
-.pg-btn{width:27px;height:27px;display:flex;align-items:center;justify-content:center;border-radius:5px;background:var(--surface);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:11px;font-family:'DM Mono',monospace;transition:all 0.15s;}
+.pg-btn{width:27px;height:27px;display:flex;align-items:center;justify-content:center;border-radius:5px;background:var(--surface);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:11px;font-family:'Poppins',sans-serif;font-weight:500;transition:all 0.15s;}
 .pg-btn:hover:not(.disabled){color:var(--text);border-color:var(--muted);}
-.pg-btn.active{background:var(--accent);border-color:var(--accent);color:#080b0f;font-weight:700;}
+.pg-btn.active{background:var(--accent);border-color:var(--accent);color:#ffffff;font-weight:700;}
 .pg-btn.disabled{opacity:0.3;cursor:default;}
 
 /* GROWTH ANNOTATIONS */
-.growth-label{font-family:'DM Mono',monospace;font-size:9px;font-weight:700;}
+.growth-label{font-family:'Poppins',sans-serif;font-weight:500;font-size:9px;font-weight:700;}
 
 @media(max-width:1100px){.kpi-grid,.kpi-grid-4{grid-template-columns:repeat(2,1fr);}.kpi-grid-3{grid-template-columns:repeat(3,1fr);}.g2,.g2r,.g2e,.g3{grid-template-columns:1fr;}}
+
+/* ===== UPLOAD GATE (shows before CSV is uploaded) ===== */
+#dashboard-wrap{display:none;}
+#dashboard-wrap.active{display:block;}
+#upload-gate{min-height:calc(100vh - 80px);display:flex;align-items:center;justify-content:center;padding:40px;}
+#upload-gate.hidden{display:none;}
+.upload-card{max-width:560px;width:100%;text-align:center;padding:56px 40px;border:1px dashed var(--border);border-radius:16px;background:var(--surface2);}
+.upload-title{font-family:'Poppins',sans-serif;font-weight:700;font-size:26px;margin-bottom:8px;color:var(--text);}
+.upload-sub{color:var(--muted);margin-bottom:28px;font-size:14px;line-height:1.5;}
+.btn-primary{background:#000000;color:#ffffff;border:none;border-radius:8px;padding:14px 28px;font-family:'Poppins',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:inline-block;transition:opacity 0.15s;}
+.btn-primary:hover{opacity:0.85;}
+#fileInput{display:none;}
+.filename{margin-top:16px;font-size:12px;color:var(--muted);}
+.gate-logo{margin-bottom:20px;display:flex;justify-content:center;align-items:center;}
+.gate-logo-img{max-height:80px;max-width:100%;width:auto;height:auto;object-fit:contain;}
+.hdr-logo-img{max-height:40px;width:auto;object-fit:contain;}
+.status-msg{margin-top:14px;font-size:12px;min-height:16px;}
+.status-msg.ok{color:var(--success);}
+.status-msg.err{color:var(--a3);}
+
+/* Top-right summary shown in header after upload */
+.hdr-summary{display:none;gap:32px;align-items:center;}
+.hdr-summary.active{display:flex;}
+.hdr-summary-item{text-align:right;}
+.hdr-summary-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:2px;}
+.hdr-summary-value{font-family:'Poppins',sans-serif;font-weight:700;font-size:20px;color:#000;line-height:1.1;}
 </style>
 </head>
 <body>
 
 <header>
   <div class="logo-wrap">
-    <img class="logo-img" src="logo.png" alt="Logo" onerror="this.style.display='none';document.querySelector('.logo-fallback').style.display='flex'">
-    <div class="logo-fallback">🏄</div>
-    <span class="logo-text">Analytics</span>
+    <img src="logo.png" alt="Logo" class="hdr-logo-img" onerror="this.style.display='none'">
   </div>
-  <nav class="nav-tabs">
+  <nav class="nav-tabs" id="navTabs" style="display:none;">
     <button class="nav-tab active" onclick="showPage('overview',this)">Overzicht</button>
     <button class="nav-tab" onclick="showPage('trends',this)">Trends</button>
     <button class="nav-tab" onclick="showPage('klanten',this)">Klanten</button>
     <button class="nav-tab" onclick="showPage('orders',this)">Orders</button>
   </nav>
-  <div class="hdr-meta">
-    <b>13.873</b> orders &nbsp;·&nbsp; <b>€3.596.532</b> totaal &nbsp;·&nbsp; 2012–2026
+  <div class="hdr-summary" id="hdrSummary">
+    <div class="hdr-summary-item">
+      <div class="hdr-summary-label">Jaaromzet</div>
+      <div class="hdr-summary-value" id="hdrRev">€0</div>
+    </div>
+    <div class="hdr-summary-item">
+      <div class="hdr-summary-label">Orders tot nu toe</div>
+      <div class="hdr-summary-value" id="hdrOrd">0</div>
+    </div>
   </div>
 </header>
 
+<!-- ======== UPLOAD GATE ======== -->
+<section id="upload-gate">
+  <div class="upload-card">
+    <div class="gate-logo">
+      <img src="logo.png" alt="Logo" class="gate-logo-img" onerror="this.style.display='none'">
+    </div>
+    <div class="upload-sub" style="margin-top:8px;">Kies een CSV-export om het dashboard te openen.</div>
+    <button type="button" class="btn-primary" onclick="document.getElementById('fileInput').click()">Kies CSV-bestand</button>
+    <input type="file" id="fileInput" accept=".csv,text/csv" style="display:none;" />
+    <div class="filename" id="filename"></div>
+    <div class="status-msg" id="status"></div>
+  </div>
+</section>
+
+<div id="dashboard-wrap">
 <main>
 
 <!-- ======== OVERZICHT ======== -->
@@ -310,6 +356,7 @@ tbody td{padding:10px 20px;font-size:12px;font-family:'DM Mono',monospace;white-
   </div>
 </div>
 </main>
+</div>
 
 <script>
 const A = {"by_month":{"2012-07":{"rev":6088.795999999999,"cnt":20,"refund":0.0},"2012-08":{"rev":2464.65,"cnt":14,"refund":0.0},"2012-09":{"rev":950.9499999999999,"cnt":11,"refund":0.0},"2012-10":{"rev":1111.9,"cnt":5,"refund":0.0},"2012-11":{"rev":3952.25,"cnt":12,"refund":0.0},"2012-12":{"rev":1793.45,"cnt":11,"refund":0.0},"2013-01":{"rev":3255.8999999999996,"cnt":11,"refund":0.0},"2013-02":{"rev":3647.5,"cnt":21,"refund":0.0},"2013-03":{"rev":2053.73,"cnt":12,"refund":0.0},"2013-04":{"rev":5435.9,"cnt":31,"refund":0.0},"2013-05":{"rev":4364.648999999999,"cnt":17,"refund":0.0},"2013-06":{"rev":5929.4389999999985,"cnt":34,"refund":0.0},"2013-07":{"rev":5067.299999999998,"cnt":23,"refund":0.0},"2013-08":{"rev":41484.950000000004,"cnt":41,"refund":0.0},"2013-09":{"rev":7763.5,"cnt":23,"refund":0.0},"2013-10":{"rev":7371.94,"cnt":14,"refund":0.0},"2013-11":{"rev":5821.92,"cnt":45,"refund":0.0},"2013-12":{"rev":3163.999999999999,"cnt":12,"refund":0.0},"2014-01":{"rev":1945.8000000000002,"cnt":7,"refund":0.0},"2014-02":{"rev":2237.75,"cnt":10,"refund":0.0},"2014-03":{"rev":2067.1,"cnt":14,"refund":0.0},"2014-04":{"rev":2128.7,"cnt":13,"refund":0.0},"2014-05":{"rev":3344.95,"cnt":17,"refund":0.0},"2014-06":{"rev":1975.6900000000005,"cnt":27,"refund":0.0},"2014-07":{"rev":3858.689999999999,"cnt":28,"refund":0.0},"2014-08":{"rev":7442.869999999998,"cnt":28,"refund":0.0},"2014-09":{"rev":2525.32,"cnt":18,"refund":0.0},"2014-10":{"rev":1150.65,"cnt":12,"refund":0.0},"2014-11":{"rev":4634.849999999999,"cnt":17,"refund":0.0},"2014-12":{"rev":2799.99,"cnt":18,"refund":0.0},"2015-01":{"rev":5156.649999999999,"cnt":15,"refund":0.0},"2015-02":{"rev":1990.4499999999998,"cnt":8,"refund":0.0},"2015-03":{"rev":3383.4299999999994,"cnt":38,"refund":0.0},"2015-04":{"rev":3127.7499999999986,"cnt":14,"refund":0.0},"2015-05":{"rev":3921.7399999999993,"cnt":24,"refund":0.0},"2015-06":{"rev":13302.040000000006,"cnt":43,"refund":0.0},"2015-07":{"rev":7418.279999999999,"cnt":27,"refund":0.0},"2015-08":{"rev":4336.119999999999,"cnt":26,"refund":0.0},"2015-09":{"rev":1398.8000000000004,"cnt":12,"refund":0.0},"2015-10":{"rev":1698.5500000000002,"cnt":8,"refund":0.0},"2015-11":{"rev":1717.0,"cnt":11,"refund":0.0},"2015-12":{"rev":4301.299999999999,"cnt":14,"refund":0.0},"2016-01":{"rev":1684.5500000000002,"cnt":12,"refund":0.0},"2016-02":{"rev":3733.5500000000006,"cnt":15,"refund":0.0},"2016-03":{"rev":6252.499999999998,"cnt":19,"refund":0.0},"2016-04":{"rev":8865.75,"cnt":30,"refund":0.0},"2016-05":{"rev":19519.75000000001,"cnt":32,"refund":0.0},"2016-06":{"rev":5769.349999999998,"cnt":20,"refund":0.0},"2016-07":{"rev":9810.08,"cnt":30,"refund":0.0},"2016-08":{"rev":7288.739999999998,"cnt":32,"refund":0.0},"2016-09":{"rev":9078.349999999999,"cnt":26,"refund":0.0},"2016-10":{"rev":6306.839999999998,"cnt":29,"refund":0.0},"2016-11":{"rev":785.0,"cnt":5,"refund":0.0},"2016-12":{"rev":568.89,"cnt":14,"refund":0.0},"2017-01":{"rev":1518.7,"cnt":7,"refund":0.0},"2017-02":{"rev":12831.099999999999,"cnt":18,"refund":0.0},"2017-03":{"rev":2835.98,"cnt":14,"refund":0.0},"2017-04":{"rev":2991.65,"cnt":8,"refund":0.0},"2017-05":{"rev":855.5899999999999,"cnt":8,"refund":0.0},"2017-06":{"rev":1483.9499999999998,"cnt":10,"refund":0.0},"2017-07":{"rev":9102.369999999999,"cnt":32,"refund":0.0},"2017-08":{"rev":12052.600000000004,"cnt":29,"refund":179.0},"2017-09":{"rev":3971.4999999999995,"cnt":10,"refund":0.0},"2017-10":{"rev":1083.5,"cnt":7,"refund":0.0},"2017-11":{"rev":1073.6,"cnt":8,"refund":0.0},"2017-12":{"rev":1712.54,"cnt":9,"refund":0.0},"2018-01":{"rev":2363.9400000000005,"cnt":17,"refund":0.0},"2018-02":{"rev":404.89,"cnt":4,"refund":0.0},"2018-03":{"rev":2587.7000000000003,"cnt":4,"refund":0.0},"2018-04":{"rev":1571.9,"cnt":10,"refund":0.0},"2018-05":{"rev":252.9,"cnt":2,"refund":0.0},"2018-06":{"rev":2783.9900000000002,"cnt":15,"refund":0.0},"2018-07":{"rev":6979.15,"cnt":22,"refund":0.0},"2018-08":{"rev":6089.8,"cnt":20,"refund":0.0},"2018-09":{"rev":7174.499999999999,"cnt":12,"refund":0.0},"2018-10":{"rev":1988.5500000000002,"cnt":9,"refund":0.0},"2018-11":{"rev":1570.7500000000002,"cnt":8,"refund":0.0},"2018-12":{"rev":6451.199999999999,"cnt":20,"refund":0.0},"2019-01":{"rev":144.8,"cnt":3,"refund":0.0},"2019-02":{"rev":14868.850000000004,"cnt":14,"refund":0.0},"2019-03":{"rev":6038.049999999998,"cnt":31,"refund":0.0},"2019-04":{"rev":978.5000000000001,"cnt":10,"refund":0.0},"2019-05":{"rev":1512.3500000000001,"cnt":7,"refund":0.0},"2019-06":{"rev":6150.249999999999,"cnt":17,"refund":0.0},"2019-07":{"rev":2019.5500000000002,"cnt":14,"refund":0.0},"2019-08":{"rev":4391.75,"cnt":15,"refund":0.0},"2019-09":{"rev":1948.5500000000004,"cnt":9,"refund":0.0},"2019-10":{"rev":880.3499999999999,"cnt":9,"refund":0.0},"2019-11":{"rev":2766.69,"cnt":11,"refund":0.0},"2019-12":{"rev":3502.59,"cnt":11,"refund":0.0},"2020-01":{"rev":1663.8,"cnt":7,"refund":0.0},"2020-02":{"rev":1990.3700000000001,"cnt":11,"refund":0.0},"2020-03":{"rev":2522.4500000000003,"cnt":13,"refund":0.0},"2020-04":{"rev":2592.4500000000003,"cnt":15,"refund":0.0},"2020-05":{"rev":3957.4400000000005,"cnt":31,"refund":0.0},"2020-06":{"rev":22880.880000000012,"cnt":45,"refund":0.0},"2020-07":{"rev":8927.129999999997,"cnt":40,"refund":0.0},"2020-08":{"rev":11202.81,"cnt":33,"refund":0.0},"2020-09":{"rev":4791.05,"cnt":18,"refund":0.0},"2020-10":{"rev":5501.059999999999,"cnt":25,"refund":0.0},"2020-11":{"rev":5222.99,"cnt":29,"refund":0.0},"2020-12":{"rev":2517.1699999999996,"cnt":18,"refund":0.0},"2021-01":{"rev":9371.52,"cnt":4,"refund":0.0},"2021-03":{"rev":1699.0,"cnt":2,"refund":0.0},"2021-04":{"rev":507.99,"cnt":6,"refund":149.99},"2021-05":{"rev":27449.16000000001,"cnt":65,"refund":1401.94},"2021-06":{"rev":26500.620000000024,"cnt":80,"refund":4074.95},"2021-07":{"rev":15374.009999999998,"cnt":59,"refund":6539.389999999999},"2021-08":{"rev":21209.129999999997,"cnt":80,"refund":3191.99},"2021-09":{"rev":18879.08,"cnt":70,"refund":2332.95},"2021-10":{"rev":7650.349999999998,"cnt":45,"refund":1366.98},"2021-11":{"rev":34234.690000000024,"cnt":169,"refund":5719.42},"2021-12":{"rev":14971.009999999998,"cnt":70,"refund":1120.05},"2022-01":{"rev":10912.499999999998,"cnt":60,"refund":727.8},"2022-02":{"rev":14569.62,"cnt":50,"refund":539.9200000000001},"2022-03":{"rev":10216.409999999998,"cnt":45,"refund":99.0},"2022-04":{"rev":23089.42000000001,"cnt":77,"refund":613.9},"2022-05":{"rev":26344.17000000001,"cnt":85,"refund":988.8900000000001},"2022-06":{"rev":29175.170000000006,"cnt":97,"refund":1213.92},"2022-07":{"rev":33497.680000000015,"cnt":129,"refund":691.0999999999999},"2022-08":{"rev":32606.190000000017,"cnt":109,"refund":1496.6000000000001},"2022-09":{"rev":24916.530000000017,"cnt":98,"refund":1379.76},"2022-10":{"rev":21159.900000000012,"cnt":110,"refund":587.03},"2022-11":{"rev":95904.60000000015,"cnt":397,"refund":6068.43},"2022-12":{"rev":46389.05000000004,"cnt":202,"refund":2603.75},"2023-01":{"rev":51661.67999999999,"cnt":163,"refund":8399.5},"2023-02":{"rev":33944.17000000004,"cnt":117,"refund":599.89},"2023-03":{"rev":28587.45000000004,"cnt":124,"refund":1303.0400000000002},"2023-04":{"rev":40420.47999999997,"cnt":157,"refund":1882.72},"2023-05":{"rev":39972.56999999999,"cnt":152,"refund":1572.51},"2023-06":{"rev":29045.340000000026,"cnt":115,"refund":1449.05},"2023-07":{"rev":58459.219999999936,"cnt":207,"refund":3337.86},"2023-08":{"rev":33220.810000000034,"cnt":109,"refund":1368.4200000000003},"2023-09":{"rev":32009.970000000016,"cnt":106,"refund":2684.65},"2023-10":{"rev":48068.60999999997,"cnt":128,"refund":1845.4900000000002},"2023-11":{"rev":92455.69999999998,"cnt":462,"refund":8753.639999999998},"2023-12":{"rev":42056.920000000006,"cnt":207,"refund":621.03},"2024-01":{"rev":24806.630000000005,"cnt":126,"refund":1053.94},"2024-02":{"rev":50862.499999999985,"cnt":176,"refund":2358.0600000000004},"2024-03":{"rev":49834.15999999998,"cnt":198,"refund":2560.65},"2024-04":{"rev":76337.77000000002,"cnt":216,"refund":3402.77},"2024-05":{"rev":69648.81999999996,"cnt":204,"refund":4948.98},"2024-06":{"rev":49739.219999999994,"cnt":220,"refund":5532.449999999999},"2024-07":{"rev":66911.37999999993,"cnt":236,"refund":5672.089999999998},"2024-08":{"rev":60225.49999999996,"cnt":265,"refund":5467.629999999999},"2024-09":{"rev":55557.13999999999,"cnt":243,"refund":7640.269999999998},"2024-10":{"rev":71374.45999999996,"cnt":264,"refund":7316.829999999998},"2024-11":{"rev":116954.8600000004,"cnt":496,"refund":5767.829999999996},"2024-12":{"rev":108020.75000000003,"cnt":538,"refund":7075.819999999996},"2025-01":{"rev":102026.69000000006,"cnt":291,"refund":5592.049999999998},"2025-02":{"rev":48286.77000000001,"cnt":169,"refund":3052.9799999999996},"2025-03":{"rev":78714.39000000003,"cnt":246,"refund":3453.12},"2025-04":{"rev":67565.85999999997,"cnt":262,"refund":4763.540000000001},"2025-05":{"rev":83574.2599999999,"cnt":405,"refund":8340.029999999995},"2025-06":{"rev":79633.71,"cnt":352,"refund":6169.949999999998},"2025-07":{"rev":91135.41000000002,"cnt":368,"refund":4879.279999999999},"2025-08":{"rev":80232.28000000009,"cnt":320,"refund":4310.22},"2025-09":{"rev":62825.95,"cnt":234,"refund":2952.21},"2025-10":{"rev":51608.46,"cnt":236,"refund":3044.629999999999},"2025-11":{"rev":150722.8100000001,"cnt":674,"refund":4767.959999999999},"2025-12":{"rev":121086.47000000012,"cnt":416,"refund":2725.4599999999996},"2026-01":{"rev":34048.73999999998,"cnt":152,"refund":854.2},"2026-02":{"rev":54094.90999999998,"cnt":146,"refund":1631.05},"2026-03":{"rev":53243.789999999964,"cnt":237,"refund":60.0},"2026-04":{"rev":70972.77,"cnt":218,"refund":531.78}},"by_year":{"2012":{"rev":16361.996000000006,"cnt":73,"refund":0.0},"2013":{"rev":95360.72799999993,"cnt":284,"refund":0.0},"2014":{"rev":36112.36000000003,"cnt":209,"refund":0.0},"2015":{"rev":51752.11000000001,"cnt":240,"refund":0.0},"2016":{"rev":79663.34999999979,"cnt":264,"refund":0.0},"2017":{"rev":51513.07999999998,"cnt":160,"refund":179.0},"2018":{"rev":40219.26999999997,"cnt":143,"refund":0.0},"2019":{"rev":45202.28000000002,"cnt":151,"refund":0.0},"2020":{"rev":73769.59999999985,"cnt":285,"refund":0.0},"2021":{"rev":177846.55999999953,"cnt":650,"refund":25897.660000000018},"2022":{"rev":368781.240000001,"cnt":1459,"refund":17010.099999999995},"2023":{"rev":529902.9200000016,"cnt":2047,"refund":33817.80000000001},"2024":{"rev":800273.1899999856,"cnt":3182,"refund":58797.32000000002},"2025":{"rev":1017413.0599999853,"cnt":3973,"refund":54051.43000000002},"2026":{"rev":212360.21000000057,"cnt":753,"refund":3077.0299999999993}},"month_mom":{"2012-07":null,"2012-08":-59.52155401494811,"2012-09":-61.416428296106965,"2012-10":16.925180083074835,"2012-11":255.45013040741068,"2012-12":-54.622050730596506,"2013-01":81.54395160166158,"2013-02":12.027396418808944,"2013-03":-43.69485949280329,"2013-04":164.68425742429628,"2013-05":-19.706966647657246,"2013-06":35.85145105597264,"2013-07":-14.539975872928288,"2013-08":718.6795729481188,"2013-09":-81.2859844353193,"2013-10":-5.043601468409872,"2013-11":-21.025944324017825,"2013-12":-45.6536675186193,"2014-01":-38.501896333754715,"2014-02":15.004111419467561,"2014-03":-7.625963579488329,"2014-04":2.9800203183203475,"2014-05":57.13581058862217,"2014-06":-40.93514103349824,"2014-07":95.30847450764027,"2014-08":92.88592760755593,"2014-09":-66.07061523310227,"2014-10":-54.43547748404163,"2014-11":302.8027636553252,"2014-12":-39.58833619210977,"2015-01":84.16672916688985,"2015-02":-61.40032773215168,"2015-03":69.98316963500714,"2015-04":-7.556828425591805,"2015-05":25.385340900008025,"2015-06":239.1871975194686,"2015-07":-44.23201253341596,"2015-08":-41.54817558787213,"2015-09":-67.7407451823289,"2015-10":21.429082070345988,"2015-11":1.0862205999234533,"2015-12":150.5125218404193,"2016-01":-60.83625880547741,"2016-02":121.63485797393965,"2016-03":67.46795944878191,"2016-04":41.795281887245146,"2016-05":120.17031835998095,"2016-06":-70.44352514760693,"2016-07":70.03787255063402,"2016-08":-25.701523331104354,"2016-09":24.553077761039646,"2016-10":-30.52878551719201,"2016-11":-87.55319621236626,"2016-12":-27.529936305732484,"2017-01":166.95846297175203,"2017-02":744.873905313755,"2017-03":-77.89760815518545,"2017-04":5.4891078216348514,"2017-05":-71.4007320375044,"2017-06":73.44171858016105,"2017-07":513.3879173826612,"2017-08":32.41166860938421,"2017-09":-67.04860362079552,"2017-10":-72.71811658063704,"2017-11":-0.9137055837563536,"2017-12":59.51378539493295,"2018-01":38.03706774732272,"2018-02":-82.87223872010289,"2018-03":539.1118575415546,"2018-04":-39.25493681647796,"2018-05":-83.91119027927985,"2018-06":1000.8264136022143,"2018-07":150.68875965790104,"2018-08":-12.742955804073555,"2018-09":17.811750796413655,"2018-10":-72.28308592933304,"2018-11":-21.010283875185433,"2018-12":310.7082603851662,"2019-01":-97.75545634920636,"2019-02":10168.542817679561,"2019-03":-59.39127773835908,"2019-04":-83.79443694570267,"2019-05":54.55799693408277,"2019-06":306.6684299269348,"2019-07":-67.16312345026624,"2019-08":117.4618107994355,"2019-09":-55.63158194341663,"2019-10":-54.820250955838965,"2019-11":214.27159652410975,"2019-12":26.598570855426523,"2020-01":-52.49800861648095,"2020-02":19.627960091357146,"2020-03":26.732718037349844,"2020-04":2.7750797835437764,"2020-05":52.65251017377385,"2020-06":478.17376890110796,"2020-07":-60.9843240294954,"2020-08":25.491731385114846,"2020-09":-57.23349766710316,"2020-10":14.819507206144758,"2020-11":-5.0548439755246966,"2020-12":-51.805957890020856,"2021-01":272.303817382219,"2021-03":-81.8706037014273,"2021-04":-70.1006474396704,"2021-05":5303.4843205574925,"2021-06":-3.455624871580718,"2021-07":-41.98622522793812,"2021-08":37.95444389589964,"2021-09":-10.986070621472903,"2021-10":-59.47710375717462,"2021-11":347.491814100009,"2021-12":-56.269474033502306,"2022-01":-27.109126237975932,"2022-02":33.513127147766355,"2022-03":-29.87867905957741,"2022-04":126.003263377253,"2022-05":14.096283059513832,"2022-06":10.746210641671365,"2022-07":14.815714869870538,"2022-08":-2.6613484874176287,"2022-09":-23.583436151233848,"2022-10":-15.076858615545591,"2022-11":353.23749167056604,"2022-12":-51.63000523436836,"2023-01":11.366109027884704,"2023-02":-34.29526488492042,"2023-03":-15.780972108023247,"2023-04":41.39239421494365,"2023-05":-1.1081263755402577,"2023-06":-27.336821225155074,"2023-07":101.26884381453235,"2023-08":-43.17267661114864,"2023-09":-3.6448238318090893,"2023-10":50.167619651002326,"2023-11":92.34111408671905,"2023-12":-54.511274048003514,"2024-01":-41.01653188107926,"2024-02":105.0359117703613,"2024-03":-2.0218038830179483,"2024-04":53.18361942892194,"2024-05":-8.762307308688811,"2024-06":-28.585696067786902,"2024-07":34.52438538441081,"2024-08":-9.99214184492978,"2024-09":-7.751467401681969,"2024-10":28.470364025217954,"2024-11":63.86093849256507,"2024-12":-7.638938646927827,"2025-01":-5.548989430271469,"2025-02":-52.67241346357508,"2025-03":63.01440332414035,"2025-04":-14.163267986958997,"2025-05":23.69303077027352,"2025-06":-4.715028287417551,"2025-07":14.443255249567063,"2025-08":-11.963659350410483,"2025-09":-21.694921296017103,"2025-10":-17.854867296077494,"2025-11":192.0505862798466,"2025-12":-19.662810161248967,"2026-01":-71.88064033908994,"2026-02":58.87492459339173,"2026-03":-1.5733827822248292,"2026-04":33.29774232826035},"month_yoy":{"2012-07":null,"2012-08":null,"2012-09":null,"2012-10":null,"2012-11":null,"2012-12":null,"2013-01":null,"2013-02":null,"2013-03":null,"2013-04":null,"2013-05":null,"2013-06":null,"2013-07":-16.7766500963409,"2013-08":1583.198425739963,"2013-09":716.394132183606,"2013-10":563.0038672542494,"2013-11":47.306470997533054,"2013-12":76.4197496445398,"2014-01":-40.23772228876807,"2014-02":-38.64976010966416,"2014-03":0.6510106002249512,"2014-04":-60.839971301900334,"2014-05":-23.362680481294138,"2014-06":-66.67998439650023,"2014-07":-23.85116334142442,"2014-08":-82.05886713133317,"2014-09":-67.47188767952599,"2014-10":-84.39148989275549,"2014-11":-20.389665265067205,"2014-12":-11.504740834386833,"2015-01":165.0143899681364,"2015-02":-11.051279186683061,"2015-03":63.680034831406296,"2015-04":46.93240005637238,"2015-05":17.243606032975066,"2015-06":573.2857887624073,"2015-07":92.24866470226944,"2015-08":-41.74129065803917,"2015-09":-44.60900004751871,"2015-10":47.61656455047147,"2015-11":-62.95457242413454,"2015-12":53.61840578002063,"2016-01":-67.33247360204783,"2016-02":87.57316184782341,"2016-03":84.79767573143229,"2016-04":183.45455998721138,"2016-05":397.7318741171014,"2016-06":-56.62808110635665,"2016-07":32.241975228759244,"2016-08":68.0935951957049,"2016-09":549.0098655990846,"2016-10":271.30729151334947,"2016-11":-54.28072218986605,"2016-12":-86.77399855857531,"2017-01":-9.845359294767157,"2017-02":243.67023342395296,"2017-03":-54.642463014794075,"2017-04":-66.25609790485859,"2017-05":-95.61679837088077,"2017-06":-74.27873157288082,"2017-07":-7.214110384420931,"2017-08":65.35917044646958,"2017-09":-56.253063607373576,"2017-10":-82.82023961286475,"2017-11":36.764331210191074,"2017-12":201.03183392219938,"2018-01":55.65549483110558,"2018-02":-96.84446384175948,"2018-03":-8.754645660406622,"2018-04":-47.457088897431184,"2018-05":-70.44144975981487,"2018-06":87.60672529397895,"2018-07":-23.326012895542586,"2018-08":-49.47314272439144,"2018-09":80.64962860380209,"2018-10":83.53022611905863,"2018-11":46.306818181818215,"2018-12":276.70360984268973,"2019-01":-93.87463302791103,"2019-02":3572.318407468696,"2019-03":133.33655369633257,"2019-04":-37.75049303390801,"2019-05":498.0031633056544,"2019-06":120.91494581517888,"2019-07":-71.06309507604794,"2019-08":-27.883510131695626,"2019-09":-72.84061607080632,"2019-10":-55.729048804405224,"2019-11":76.13815056501669,"2019-12":-45.70638020833332,"2020-01":1049.0331491712705,"2020-02":-86.61382689313565,"2020-03":-58.22409552752956,"2020-04":164.94123658661218,"2020-05":161.67487684729062,"2020-06":272.03170602821046,"2020-07":342.03560199054226,"2020-08":155.087607445779,"2020-09":145.87770393369425,"2020-10":524.8719259385472,"2020-11":88.78117895391242,"2020-12":-28.134037954770623,"2021-01":463.26000721240536,"2021-03":-32.644849253701764,"2021-04":-80.40502227622518,"2021-05":593.608999757419,"2021-06":15.81993349906127,"2021-07":72.21671466641578,"2021-08":89.31973317408756,"2021-09":294.04890368499605,"2021-10":39.07047005486214,"2021-11":555.4615268265883,"2021-12":494.75561841274134,"2022-01":16.443223724646565,"2022-02":null,"2022-03":501.31901118304876,"2022-04":4445.250890765567,"2022-05":-4.025587668256519,"2022-06":10.092405385232416,"2022-07":117.88511910685644,"2022-08":53.736574767564825,"2022-09":31.979577394661256,"2022-10":176.5873456769954,"2022-11":180.13865468038438,"2022-12":209.8591878570654,"2023-01":373.41745704467354,"2023-02":132.9791030925998,"2023-03":179.81893835505866,"2023-04":75.06061217648582,"2023-05":51.73212896819288,"2023-06":-0.44500169150678437,"2023-07":74.51722029704717,"2023-08":1.884979508492151,"2023-09":28.468811668398423,"2023-10":127.1684176201208,"2023-11":-3.596177868423583,"2023-12":-9.338690919516631,"2024-01":-51.9825332819219,"2024-02":49.841637017490555,"2024-03":74.32180904557738,"2024-04":88.85913774403491,"2024-05":74.24153613340341,"2024-06":71.24681618462704,"2024-07":14.45821548765106,"2024-08":81.2884755067679,"2024-09":73.56198709339611,"2024-10":48.48455156077949,"2024-11":26.49826890067396,"2024-12":156.84417689169823,"2025-01":311.28799034774187,"2025-02":-5.06410420250671,"2025-03":57.952677440534885,"2025-04":-11.490917274633572,"2025-05":19.993791711043972,"2025-06":60.1024503399933,"2025-07":36.20315408231023,"2025-08":33.21978231812128,"2025-09":13.083484859011833,"2025-10":-27.693379396495573,"2025-11":28.87263513461485,"2025-12":12.095564972470646,"2026-01":-66.62761479373684,"2026-02":12.028429319252393,"2026-03":-32.35825114061108,"2026-04":5.04235423037616},"year_yoy":{"2012":null,"2013":482.8184287540463,"2014":-62.130784068678615,"2015":43.308579112525365,"2016":53.93256429544569,"2017":-35.336538069262566,"2018":-21.92415984445119,"2019":12.38960826489406,"2020":63.198847491763274,"2021":141.0838068797986,"2022":107.35922021769886,"2023":43.69031353113302,"2024":51.022604291364026,"2025":27.133218095186162,"2026":-79.12743423993362},"ytd":{"rev":212360.21,"prev_rev":280883.54,"yoy":-24.395637423253778,"cnt":753,"prev_cnt":910},"mtd":{"rev":70972.77,"prev_rev":67565.86,"yoy":5.042354230376115,"cnt":218,"prev_cnt":262},"status_counts":{"Complete":9984,"Canceled":3049,"Closed":744,"Pending":62,"Payment Review":21,"Processing":11,"On Hold":2},"country_counts":{"Nederland":7196,"Duitsland":4314,"Belgi\u00eb":1718,"Onbekend":25,"S652TN":16,"3810056":9,"3479307":9,"118 46":8,"757 01":7,"DE-85391":6,"*":6,"11-130":6,"837 96":6,"0675932799":5,"434 97":5},"pm_stats":{"Ideal | Wero":{"count":4707,"revenue":986444.1799999797},"Paypal":{"count":3110,"revenue":822604.8599999922},"Credit Cards":{"count":2127,"revenue":788933.9599999954},"Ideal":{"count":1170,"revenue":223016.76599999983},"Klarna Pay Later":{"count":733,"revenue":181391.2900000004},"Bancontact":{"count":708,"revenue":165346.56000000014},"Apple Pay":{"count":568,"revenue":134988.7600000003},"Visa":{"count":226,"revenue":126201.70999999969},"Mastercard":{"count":265,"revenue":106656.8989999997},"Sofort":{"count":60,"revenue":21809.630000000005},"Maestro":{"count":50,"revenue":11725.178999999998},"Bcmc":{"count":36,"revenue":9406.44}},"heatmap":{"0-12":131,"1-8":64,"1-19":144,"3-16":96,"0-21":196,"2-10":132,"2-11":123,"2-15":135,"3-15":86,"4-10":147,"0-18":139,"3-19":127,"4-14":133,"6-12":132,"0-17":107,"2-7":34,"4-11":124,"1-16":97,"3-18":102,"3-9":84,"5-11":116,"1-9":114,"1-11":143,"2-16":133,"3-14":108,"4-18":114,"6-14":122,"5-15":106,"0-13":128,"1-18":121,"2-13":127,"4-12":127,"3-10":106,"3-7":54,"3-12":108,"5-18":109,"2-9":98,"3-11":120,"6-16":140,"1-17":144,"3-21":118,"6-11":152,"0-10":121,"1-10":109,"1-13":130,"1-14":101,"5-9":105,"0-14":126,"1-22":137,"4-8":84,"6-18":149,"0-15":138,"2-22":116,"1-12":134,"0-9":102,"5-22":95,"6-20":179,"5-14":145,"6-21":201,"0-19":153,"3-13":103,"6-22":137,"2-17":128,"5-17":127,"2-19":127,"6-15":131,"4-22":86,"0-22":160,"2-20":130,"5-10":130,"0-20":170,"1-5":9,"2-6":30,"2-8":75,"2-14":142,"5-6":16,"5-7":27,"6-0":31,"4-13":126,"6-19":163,"4-15":138,"6-8":48,"1-6":22,"3-6":18,"6-6":9,"6-13":136,"4-19":89,"5-13":141,"1-15":130,"1-7":41,"4-7":35,"4-17":106,"6-17":148,"0-8":83,"3-17":100,"5-8":43,"5-12":105,"6-9":78,"0-16":136,"1-20":124,"0-11":140,"2-18":124,"2-5":12,"2-21":137,"5-19":98,"5-20":93,"1-21":156,"1-2":8,"3-22":85,"3-23":89,"4-2":8,"4-6":16,"4-23":58,"3-8":63,"5-16":124,"2-12":106,"6-10":127,"0-7":41,"4-4":5,"4-9":98,"4-20":99,"4-21":105,"1-23":61,"3-0":23,"5-23":63,"0-1":8,"3-20":125,"5-5":3,"2-23":51,"1-0":35,"0-23":76,"6-23":73,"0-3":9,"1-1":20,"4-16":126,"0-0":25,"0-6":24,"4-1":5,"4-3":8,"4-0":24,"5-21":104,"2-0":15,"2-2":5,"6-3":3,"6-2":5,"6-7":24,"5-0":19,"3-1":10,"5-1":7,"3-3":4,"6-1":10,"6-4":3,"6-5":4,"2-3":6,"5-3":4,"0-5":6,"1-4":4,"2-4":5,"3-2":3,"2-1":8,"1-3":3,"4-5":10,"0-2":8,"5-4":1,"3-5":1,"0-4":1,"3-4":2,"5-2":3},"dow_revenue":{"0":{"revenue":567046.3879999986,"count":2228},"1":{"revenue":550394.1800000007,"count":2051},"3":{"revenue":439332.2190000004,"count":1735},"2":{"revenue":536187.8790000001,"count":1999},"4":{"revenue":500473.86999999953,"count":1871},"6":{"revenue":542865.037999999,"count":2205},"5":{"revenue":460232.3800000006,"count":1784}},"top_customers_completed":[{"name":"Sascha Feuer","revenue":5536.9,"count":3,"email":"sfeuer@t-online.de","refund":0.0},{"name":"Georg Clarici","revenue":5419.95,"count":3,"email":"g.clarici@gmx.net","refund":0.0},{"name":"Emmanuel HOUSSIN","revenue":4907.950000000001,"count":2,"email":"mahous@free.fr","refund":0.0},{"name":"Joeri Blyweert","revenue":4867.52,"count":7,"email":"jblyweert@gmail.com","refund":100.0},{"name":"Jiles Luyt","revenue":4403.099999999999,"count":5,"email":"jilesluyt@gmail.com","refund":0.0},{"name":"Spyros Kokkolis","revenue":4279.45,"count":2,"email":"nathair.svk@gmail.com","refund":0.0},{"name":"Salva Padrosa","revenue":3883.8999999999996,"count":3,"email":"spadrosap@gmail.com","refund":0.0},{"name":"Thibbes Dijksterhuis","revenue":3789.9799999999996,"count":5,"email":"thibbes@hotmail.com","refund":109.99},{"name":"Udo  Schaap","revenue":3718.4700000000003,"count":12,"email":"udo.schaap@gmail.com","refund":0.0},{"name":"Andy Ching Chung","revenue":3524.9,"count":5,"email":"news@bureau17.nl","refund":0.0},{"name":"Carel Opten","revenue":3489.93,"count":6,"email":"carel.opten@gmail.com","refund":0.0},{"name":"Mandy Baruth","revenue":3422.95,"count":2,"email":"mandybaruth@outlook.de","refund":0.0},{"name":"Max Poller","revenue":3266.8500000000004,"count":3,"email":"maxpoller65@gmail.com","refund":0.0},{"name":"Mike Haberland","revenue":3198.0,"count":1,"email":"haberland.generic@gmail.com","refund":0.0},{"name":"Bique Rouleau","revenue":3090.5,"count":7,"email":"biquerouleau@hotmail.com","refund":0.0},{"name":"Frank Klein","revenue":3014.0,"count":2,"email":"kleini@gmx.de","refund":0.0},{"name":"Marcus Stevens","revenue":2983.3500000000004,"count":10,"email":"marcus.stevens@me.com","refund":0.0},{"name":"Ivan Rossignol","revenue":2959.95,"count":1,"email":"a7ivan@gmail.com","refund":0.0},{"name":"Victor Timofei","revenue":2940.75,"count":1,"email":"surf-center.com.diabolic013@passmail.net","refund":0.0},{"name":"Michael Haberland","revenue":2938.94,"count":2,"email":"haberland.generic@gmail.com","refund":0.0}],"pm_stats_completed":{"Ideal | Wero":{"count":3645,"revenue":606323.8199999953},"Paypal":{"count":2376,"revenue":553610.0000000013},"Credit Cards":{"count":1248,"revenue":388270.7800000005},"Ideal":{"count":975,"revenue":175578.3779999995},"Klarna Pay Later":{"count":474,"revenue":97255.45000000007},"Bancontact":{"count":496,"revenue":85771.53000000012},"Apple Pay":{"count":420,"revenue":77727.25000000001},"Mastercard":{"count":136,"revenue":46710.00899999999},"Visa":{"count":117,"revenue":35915.27000000002},"Sofort":{"count":26,"revenue":14464.170000000002},"Bcmc":{"count":22,"revenue":5131.739999999999},"Bank Transfer Payment":{"count":19,"revenue":4261.749999999999},"Maestro":{"count":12,"revenue":2975.4},"Amazon Payment V2":{"count":4,"revenue":899.1400000000001},"Paypal Express Checkout":{"count":7,"revenue":840.5999999999999},"Mollie Methods Giropay":{"count":3,"revenue":304.84},"Onbekend":{"count":2,"revenue":199.99},"No Payment Information Required":{"count":2,"revenue":0.0}},"total_orders":13873,"total_revenue":3596531.954,"unique_customers":9663,"completed_count":9984,"completed_revenue_net":2096240.117,"shipping_counts":{"Verzenden - Verzenden":5328,"Verzenden - Liefern":3452,"Verzending - Verzendkosten":1205,"Verzenden - Ship":1104,"Verzenden":697,"Gratis verzending - Geen verzendkosten":558,"Surfcenter - Afhalen bij Surfcenter":345,"Verzenden - France, Denmark, Austria, Czech Republic, Sweden, Italy":283,"Please send me a quote for shipping to my address - Please send me a quote for shipping to my address":261,"":159},"aov_by_month":{"2012-07":304.4398,"2012-08":176.04642857142858,"2012-09":86.44999999999999,"2012-10":222.38000000000002,"2012-11":329.3541666666667,"2012-12":163.04090909090908,"2013-01":295.99090909090904,"2013-02":173.6904761904762,"2013-03":171.14416666666668,"2013-04":175.3516129032258,"2013-05":256.7440588235294,"2013-06":174.3952647058823,"2013-07":220.31739130434775,"2013-08":1011.828048780488,"2013-09":337.54347826086956,"2013-10":526.5671428571428,"2013-11":129.376,"2013-12":263.6666666666666,"2014-01":277.9714285714286,"2014-02":223.775,"2014-03":147.65,"2014-04":163.74615384615385,"2014-05":196.76176470588234,"2014-06":73.17370370370372,"2014-07":137.8103571428571,"2014-08":265.81678571428563,"2014-09":140.29555555555555,"2014-10":95.8875,"2014-11":272.63823529411764,"2014-12":155.55499999999998,"2015-01":343.7766666666666,"2015-02":248.80624999999998,"2015-03":89.03763157894736,"2015-04":223.4107142857142,"2015-05":163.4058333333333,"2015-06":309.3497674418606,"2015-07":274.7511111111111,"2015-08":166.7738461538461,"2015-09":116.5666666666667,"2015-10":212.31875000000002,"2015-11":156.0909090909091,"2015-12":307.2357142857142,"2016-01":140.3791666666667,"2016-02":248.90333333333336,"2016-03":329.078947368421,"2016-04":295.525,"2016-05":609.9921875000003,"2016-06":288.46749999999986,"2016-07":327.00266666666664,"2016-08":227.77312499999994,"2016-09":349.16730769230765,"2016-10":217.4772413793103,"2016-11":157.0,"2016-12":40.635,"2017-01":216.95714285714286,"2017-02":712.8388888888888,"2017-03":202.57,"2017-04":373.95625,"2017-05":106.94874999999999,"2017-06":148.39499999999998,"2017-07":284.44906249999997,"2017-08":415.6068965517243,"2017-09":397.15,"2017-10":154.78571428571428,"2017-11":134.2,"2017-12":190.28222222222223,"2018-01":139.0552941176471,"2018-02":101.2225,"2018-03":646.9250000000001,"2018-04":157.19,"2018-05":126.45,"2018-06":185.59933333333336,"2018-07":317.23409090909087,"2018-08":304.49,"2018-09":597.8749999999999,"2018-10":220.95000000000002,"2018-11":196.34375000000003,"2018-12":322.55999999999995,"2019-01":48.26666666666667,"2019-02":1062.0607142857145,"2019-03":194.77580645161285,"2019-04":97.85000000000001,"2019-05":216.05,"2019-06":361.77941176470586,"2019-07":144.25357142857143,"2019-08":292.78333333333336,"2019-09":216.5055555555556,"2019-10":97.81666666666666,"2019-11":251.51727272727274,"2019-12":318.41727272727275,"2020-01":237.68571428571428,"2020-02":180.9427272727273,"2020-03":194.0346153846154,"2020-04":172.83,"2020-05":127.65935483870969,"2020-06":508.4640000000003,"2020-07":223.17824999999993,"2020-08":339.47909090909087,"2020-09":266.1694444444445,"2020-10":220.04239999999993,"2020-11":180.10310344827585,"2020-12":139.84277777777777,"2021-01":2342.88,"2021-03":849.5,"2021-04":84.665,"2021-05":422.2947692307694,"2021-06":331.2577500000003,"2021-07":260.57644067796605,"2021-08":265.11412499999994,"2021-09":269.7011428571429,"2021-10":170.00777777777773,"2021-11":202.57213017751494,"2021-12":213.8715714285714,"2022-01":181.87499999999997,"2022-02":291.3924,"2022-03":227.0313333333333,"2022-04":299.86259740259754,"2022-05":309.931411764706,"2022-06":300.7749484536083,"2022-07":259.67193798449625,"2022-08":299.1393577981653,"2022-09":254.25030612244916,"2022-10":192.3627272727274,"2022-11":241.57329974811122,"2022-12":229.6487623762378,"2023-01":316.94282208588953,"2023-02":290.1211111111115,"2023-03":230.54395161290356,"2023-04":257.4552866242036,"2023-05":262.97743421052627,"2023-06":252.5681739130437,"2023-07":282.4116908212557,"2023-08":304.7780733944957,"2023-09":301.9808490566039,"2023-10":375.5360156249998,"2023-11":200.12056277056274,"2023-12":203.17352657004832,"2024-01":196.8780158730159,"2024-02":288.9914772727272,"2024-03":251.68767676767666,"2024-04":353.41560185185193,"2024-05":341.4157843137253,"2024-06":226.08736363636362,"2024-07":283.5227966101692,"2024-08":227.26603773584893,"2024-09":228.63020576131683,"2024-10":270.3578030303029,"2024-11":235.7960887096782,"2024-12":200.78206319702608,"2025-01":350.6071821305844,"2025-02":285.7205325443788,"2025-03":319.97719512195135,"2025-04":257.884961832061,"2025-05":206.35619753086394,"2025-06":226.2321306818182,"2025-07":247.65057065217397,"2025-08":250.72587500000026,"2025-09":268.4869658119658,"2025-10":218.67991525423727,"2025-11":223.62434718100909,"2025-12":291.073245192308,"2026-01":224.00486842105252,"2026-02":370.5130821917807,"2026-03":224.65734177215174,"2026-04":325.5631651376147}};
@@ -322,8 +369,8 @@ const fmtN = n => new Intl.NumberFormat('nl-NL').format(n);
 const pct = (v,p=1) => {if(v===null||v===undefined||isNaN(v)) return '—'; const s=v>=0?'+':''; return s+v.toFixed(p)+'%';};
 const trendClass = v => v===null||v===undefined||isNaN(v)?'neutral':v>=0?'up':'down';
 const trendIcon = v => v===null||v===undefined||isNaN(v)?'':(v>=0?'▲ ':' ▼');
-const C={accent:'#e8ff47',a2:'#47c8ff',a3:'#ff6b6b',success:'#4ade80',warn:'#fb923c',purple:'#c084fc',muted:'#4a5068',border:'#1a1e28',text:'#dde1ec',s2:'#151820'};
-const PAL=[C.accent,C.a2,C.success,C.warn,C.a3,C.purple,'#f472b6','#34d399','#60a5fa','#fbbf24','#a78bfa','#fb7185'];
+const C={accent:'#000000',a2:'#3b82f6',a3:'#ef4444',success:'#10b981',warn:'#f59e0b',purple:'#8b5cf6',muted:'#6b7280',border:'#e5e7eb',text:'#111111',s2:'#fafafa'};
+const PAL=['#000000',C.a2,C.success,C.warn,C.a3,C.purple,'#ec4899','#14b8a6','#6366f1','#eab308','#a855f7','#fb7185'];
 let charts={};
 const dc = id=>{if(charts[id]){charts[id].destroy();delete charts[id];}};
 const baseOpts={responsive:true,plugins:{legend:{display:false},tooltip:{backgroundColor:C.s2,borderColor:C.border,borderWidth:1,titleColor:C.text,bodyColor:C.muted,titleFont:{family:'DM Mono',size:11},bodyFont:{family:'DM Mono',size:11}}},scales:{x:{grid:{color:C.border},ticks:{color:C.muted,font:{family:'DM Mono',size:10}}},y:{grid:{color:C.border},ticks:{color:C.muted,font:{family:'DM Mono',size:10}}}}};
@@ -420,7 +467,7 @@ function renderRevChart(data,yr){
   const revs=sorted.map(([,v])=>v.rev);
   const cnts=sorted.map(([,v])=>v.cnt);
   const ctx=document.getElementById('revChart').getContext('2d');
-  const g=ctx.createLinearGradient(0,0,0,160);g.addColorStop(0,'rgba(232,255,71,0.18)');g.addColorStop(1,'rgba(232,255,71,0)');
+  const g=ctx.createLinearGradient(0,0,0,160);g.addColorStop(0,'rgba(0,0,0,0.12)');g.addColorStop(1,'rgba(0,0,0,0)');
   charts.rev=new Chart(ctx,{type:'line',data:{labels,datasets:[{label:'Omzet',data:revs,borderColor:C.accent,backgroundColor:g,borderWidth:2,pointRadius:sorted.length>24?0:3,pointHoverRadius:5,pointBackgroundColor:C.accent,fill:true,tension:0.35,yAxisID:'y'},{label:'Orders',data:cnts,borderColor:C.a2,backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:0.35,yAxisID:'y2'}]},options:{...baseOpts,scales:{x:{...baseOpts.scales.x,ticks:{...baseOpts.scales.x.ticks,maxTicksLimit:12}},y:{...baseOpts.scales.y,ticks:{...baseOpts.scales.y.ticks,callback:v=>fmtK(v)}},y2:{position:'right',grid:{display:false},ticks:{color:C.a2,font:{family:'DM Mono',size:10}}}},plugins:{...baseOpts.plugins,tooltip:{...baseOpts.plugins.tooltip,callbacks:{label:c=>c.datasetIndex===0?`Omzet: ${fmt(c.raw)}`:`Orders: ${c.raw}`}}}}});
 }
 
@@ -429,7 +476,7 @@ function renderStatusChart(data){
   const counts={};data.forEach(r=>{counts[r.status]=(counts[r.status]||0)+1;});
   const entries=Object.entries(counts).sort(([,a],[,b])=>b-a);
   const sc={Complete:C.success,Canceled:C.a3,Closed:C.muted,Pending:C.warn,Processing:C.a2,'On Hold':C.purple,'Payment Review':'#f472b6'};
-  charts.status=new Chart(document.getElementById('statusChart'),{type:'doughnut',data:{labels:entries.map(([l])=>l),datasets:[{data:entries.map(([,v])=>v),backgroundColor:entries.map(([l])=>sc[l]||C.muted),borderColor:'#080b0f',borderWidth:3}]},options:{responsive:true,cutout:'65%',plugins:{legend:{display:true,position:'bottom',labels:{color:C.muted,font:{family:'DM Mono',size:10},padding:8,boxWidth:10}},tooltip:{...baseOpts.plugins.tooltip}}}});
+  charts.status=new Chart(document.getElementById('statusChart'),{type:'doughnut',data:{labels:entries.map(([l])=>l),datasets:[{data:entries.map(([,v])=>v),backgroundColor:entries.map(([l])=>sc[l]||C.muted),borderColor:'#ffffff',borderWidth:3}]},options:{responsive:true,cutout:'65%',plugins:{legend:{display:true,position:'bottom',labels:{color:C.muted,font:{family:'DM Mono',size:10},padding:8,boxWidth:10}},tooltip:{...baseOpts.plugins.tooltip}}}});
 }
 
 function renderPmBars(data){
@@ -443,7 +490,7 @@ function renderCountryChart(data){
   dc('country');
   const c={};data.forEach(r=>{if(r.country&&r.country!=='Onbekend')c[r.country]=(c[r.country]||0)+1;});
   const s=Object.entries(c).sort(([,a],[,b])=>b-a).slice(0,6);
-  charts.country=new Chart(document.getElementById('countryChart'),{type:'bar',data:{labels:s.map(([l])=>l),datasets:[{data:s.map(([,v])=>v),backgroundColor:s.map((_,i)=>i===0?'rgba(232,255,71,0.22)':' rgba(232,255,71,0.06)'),borderColor:s.map((_,i)=>i===0?C.accent:'rgba(232,255,71,0.22)'),borderWidth:1.5,borderRadius:4}]},options:{...baseOpts,indexAxis:'y'}});
+  charts.country=new Chart(document.getElementById('countryChart'),{type:'bar',data:{labels:s.map(([l])=>l),datasets:[{data:s.map(([,v])=>v),backgroundColor:s.map((_,i)=>i===0?'rgba(0,0,0,0.85)':' rgba(0,0,0,0.05)'),borderColor:s.map((_,i)=>i===0?C.accent:'rgba(0,0,0,0.85)'),borderWidth:1.5,borderRadius:4}]},options:{...baseOpts,indexAxis:'y'}});
 }
 
 function renderShipBars(){
@@ -505,8 +552,8 @@ function renderYearRevChart(){
   }};
 
   const ctx=document.getElementById('yearRevChart').getContext('2d');
-  const g=ctx.createLinearGradient(0,0,0,200);g.addColorStop(0,'rgba(232,255,71,0.25)');g.addColorStop(1,'rgba(232,255,71,0.05)');
-  charts.yearRev=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data:revs,backgroundColor:revs.map((_,i)=>i===revs.length-1?'rgba(232,255,71,0.35)':' rgba(232,255,71,0.1)'),borderColor:revs.map((_,i)=>i===revs.length-1?C.accent:'rgba(232,255,71,0.3)'),borderWidth:1.5,borderRadius:4}]},
+  const g=ctx.createLinearGradient(0,0,0,200);g.addColorStop(0,'rgba(0,0,0,0.18)');g.addColorStop(1,'rgba(0,0,0,0.04)');
+  charts.yearRev=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data:revs,backgroundColor:revs.map((_,i)=>i===revs.length-1?'rgba(0,0,0,0.28)':' rgba(0,0,0,0.08)'),borderColor:revs.map((_,i)=>i===revs.length-1?C.accent:'rgba(0,0,0,0.22)'),borderWidth:1.5,borderRadius:4}]},
     options:{...baseOpts,layout:{padding:{top:20}},scales:{x:{...baseOpts.scales.x},y:{...baseOpts.scales.y,ticks:{...baseOpts.scales.y.ticks,callback:v=>fmtK(v)}}},plugins:{...baseOpts.plugins,tooltip:{...baseOpts.plugins.tooltip,callbacks:{label:c=>{const y=yoys[c.dataIndex];return[`Omzet: ${fmt(c.raw)}`,y!==null&&y!==undefined?`YoY: ${pct(y)}`:'Eerste jaar'];}}}}},
     plugins:[yoyPlugin]
   });
@@ -563,11 +610,11 @@ function renderMoMChart(){
   }};
 
   const ctx=document.getElementById('momChart').getContext('2d');
-  const g=ctx.createLinearGradient(0,0,0,150);g.addColorStop(0,'rgba(232,255,71,0.2)');g.addColorStop(1,'rgba(232,255,71,0)');
+  const g=ctx.createLinearGradient(0,0,0,150);g.addColorStop(0,'rgba(0,0,0,0.15)');g.addColorStop(1,'rgba(0,0,0,0)');
   charts.mom=new Chart(ctx,{type:'bar',
     data:{labels,datasets:[
       {type:'line',label:'Omzet',data:revs,borderColor:C.accent,backgroundColor:g,borderWidth:2,pointRadius:3,pointHoverRadius:5,pointBackgroundColor:C.accent,fill:true,tension:0.35,order:1,yAxisID:'y'},
-      {label:'Bars',data:revs,backgroundColor:revs.map((_,i)=>{const m=moms[i];return m===null||m===undefined?'rgba(232,255,71,0.08)':m>=0?'rgba(74,222,128,0.15)':'rgba(255,107,107,0.15)';}),borderColor:revs.map((_,i)=>{const m=moms[i];return m===null||m===undefined?'rgba(232,255,71,0.2)':m>=0?C.success:C.a3;}),borderWidth:1,borderRadius:3,order:2,yAxisID:'y'}
+      {label:'Bars',data:revs,backgroundColor:revs.map((_,i)=>{const m=moms[i];return m===null||m===undefined?'rgba(0,0,0,0.06)':m>=0?'rgba(74,222,128,0.15)':'rgba(255,107,107,0.15)';}),borderColor:revs.map((_,i)=>{const m=moms[i];return m===null||m===undefined?'rgba(0,0,0,0.15)':m>=0?C.success:C.a3;}),borderWidth:1,borderRadius:3,order:2,yAxisID:'y'}
     ]},
     options:{...baseOpts,layout:{padding:{top:18}},scales:{x:{...baseOpts.scales.x,ticks:{...baseOpts.scales.x.ticks,maxRotation:45}},y:{...baseOpts.scales.y,ticks:{...baseOpts.scales.y.ticks,callback:v=>fmtK(v)}}},plugins:{...baseOpts.plugins,legend:{display:false},tooltip:{...baseOpts.plugins.tooltip,callbacks:{label:(c)=>{if(c.datasetIndex!==0)return null;const i=c.dataIndex;const m=moms[i];const yo=yoys[i];return[`Omzet: ${fmt(c.raw)}`,m!==null&&m!==undefined?`MoM: ${pct(m)}`:'—',yo!==null&&yo!==undefined?`YoY: ${pct(yo)}`:'—'];}}}},
     plugins:[momPlugin]
@@ -611,13 +658,13 @@ function renderHeatmap(){
   let max=0;
   hours.forEach(h=>days.forEach((_,d)=>{const v=A.heatmap[`${d}-${h}`]||0;if(v>max)max=v;}));
   let html=`<div style="display:grid;grid-template-columns:26px repeat(${hours.length},1fr);gap:2px;align-items:center;margin-top:6px">`;
-  html+='<div></div>'+hours.map(h=>`<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-align:center">${h}</div>`).join('');
+  html+='<div></div>'+hours.map(h=>`<div style="font-family:'Poppins',sans-serif;font-weight:500;font-size:9px;color:var(--muted);text-align:center">${h}</div>`).join('');
   days.forEach((day,d)=>{
-    html+=`<div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">${day}</div>`;
+    html+=`<div style="font-family:'Poppins',sans-serif;font-weight:500;font-size:10px;color:var(--muted)">${day}</div>`;
     hours.forEach(h=>{
       const v=A.heatmap[`${d}-${h}`]||0;
       const a=v>0?(0.07+v/max*0.93):0;
-      html+=`<div class="hmap-cell" style="background:rgba(232,255,71,${a.toFixed(2)})" title="${day} ${h}:00 — ${v} orders"></div>`;
+      html+=`<div class="hmap-cell" style="background:rgba(0,0,0,${a.toFixed(2)})" title="${day} ${h}:00 — ${v} orders"></div>`;
     });
   });
   html+='</div>';
@@ -630,7 +677,7 @@ function renderDOWChart(){
   const revs=days.map((_,i)=>(A.dow_revenue[i]||{revenue:0}).revenue);
   const cnts=days.map((_,i)=>(A.dow_revenue[i]||{count:0}).count);
   charts.dow=new Chart(document.getElementById('dowChart'),{type:'bar',data:{labels:days.map(d=>d.slice(0,2)),datasets:[
-    {label:'Omzet',data:revs,backgroundColor:'rgba(232,255,71,0.13)',borderColor:C.accent,borderWidth:1.5,borderRadius:4,yAxisID:'y'},
+    {label:'Omzet',data:revs,backgroundColor:'rgba(0,0,0,0.1)',borderColor:C.accent,borderWidth:1.5,borderRadius:4,yAxisID:'y'},
     {label:'Orders',data:cnts,type:'line',borderColor:C.a2,backgroundColor:'transparent',borderWidth:2,pointRadius:4,pointBackgroundColor:C.a2,tension:0.3,yAxisID:'y2'}
   ]},options:{...baseOpts,plugins:{...baseOpts.plugins,legend:{display:true,position:'top',labels:{color:C.muted,font:{family:'DM Mono',size:10},boxWidth:10}}},scales:{x:{...baseOpts.scales.x},y:{...baseOpts.scales.y,ticks:{...baseOpts.scales.y.ticks,callback:v=>fmtK(v)}},y2:{position:'right',grid:{display:false},ticks:{color:C.a2,font:{family:'DM Mono',size:10}}}}}});
 }
@@ -646,7 +693,7 @@ function renderKlanten(){
     {icon:'💎',val:fmt(A.top_customers_completed[0]?.revenue||0),lbl:'Beste klant',sub:A.top_customers_completed[0]?.name||'—'},
   ].map((k,i)=>`<div class="kpi" style="animation-delay:${i*0.08}s"><span class="kpi-icon">${k.icon}</span><div class="kpi-lbl">${k.lbl}</div><div class="kpi-val">${k.val}</div><div class="kpi-sub">${k.sub}</div></div>`).join('');
 
-  const avColors=['rgba(232,255,71,0.15)','rgba(71,200,255,0.15)','rgba(74,222,128,0.15)','rgba(251,146,60,0.15)','rgba(192,132,252,0.15)'];
+  const avColors=['rgba(0,0,0,0.12)','rgba(71,200,255,0.15)','rgba(74,222,128,0.15)','rgba(251,146,60,0.15)','rgba(192,132,252,0.15)'];
   document.getElementById('custList').innerHTML=A.top_customers_completed.slice(0,15).map((c,i)=>{
     const ini=c.name.split(' ').map(w=>w[0]||''). slice(0,2).join('').toUpperCase();
     return `<div class="cust-row">
@@ -697,7 +744,7 @@ function renderTable(){
   document.getElementById('tblHead').innerHTML=cols.map((c,i)=>`<th onclick="sortTbl(${i})" class="${sortCol===i?'sorted':''}">${c.l} ${sortCol===i?(sortDir===1?'↑':'↓'):'↕'}</th>`).join('');
   document.getElementById('tblBody').innerHTML=page.map(r=>`<tr>
     <td style="color:var(--muted)">${r.id}</td><td>${r.date}</td>
-    <td style="font-family:'Sora',sans-serif;font-size:12px">${r.customer||'—'}</td>
+    <td style="font-family:'Poppins',sans-serif;font-size:12px">${r.customer||'—'}</td>
     <td><span class="badge ${SC[r.status]||'b-pending'}">${r.status}</span></td>
     <td style="color:var(--accent)">${fmt(r.revenue)}</td>
     <td style="color:${r.refund>0?'var(--a3)':'var(--muted)'}">${r.refund>0?fmt(r.refund):'—'}</td>
@@ -715,8 +762,97 @@ function renderTable(){
 }
 function sortTbl(i){if(sortCol===i)sortDir*=-1;else{sortCol=i;sortDir=-1;}curPage=1;renderTable();}
 
-// ===== INIT =====
-updateOverview();
+// ===== UPLOAD GATE =====
+const fileInput = document.getElementById('fileInput');
+const filenameEl = document.getElementById('filename');
+const statusEl = document.getElementById('status');
+
+function showStatus(msg, kind){
+  statusEl.textContent = msg;
+  statusEl.className = 'status-msg ' + (kind || '');
+}
+
+function parseNumber(v){
+  if(v==null) return 0;
+  let s=String(v).trim();
+  if(!s) return 0;
+  s=s.replace(/[€$£\s]/g,'');
+  if(s.includes(',')&&s.includes('.')){s=s.replace(/\./g,'').replace(',','.');}
+  else if(s.includes(',')){s=s.replace(',','.');}
+  const n=parseFloat(s);
+  return isNaN(n)?0:n;
+}
+function parseDate(v){
+  if(!v) return null;
+  const d=new Date(v);
+  if(!isNaN(d.getTime())) return d;
+  const m=String(v).match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+  if(m){let[_,dd,mm,yy]=m;if(yy.length===2)yy='20'+yy;const d2=new Date(+yy,+mm-1,+dd);if(!isNaN(d2.getTime()))return d2;}
+  return null;
+}
+
+function computeSummaryFromCSV(rows){
+  if(!rows.length) return null;
+  const headers=Object.keys(rows[0]);
+  const lower=headers.map(h=>(h||'').toLowerCase().trim());
+  const find=(cands)=>{
+    for(const c of cands){const i=lower.indexOf(c);if(i!==-1)return headers[i];}
+    for(const c of cands){const i=lower.findIndex(h=>h.includes(c));if(i!==-1)return headers[i];}
+    return null;
+  };
+  const revKey=find(['grand total','total','subtotal','revenue','amount','bedrag','omzet','order total','totaal']);
+  const dateKey=find(['purchase date','order date','date','datum','created at','created_at','besteldatum']);
+  const currentYear=new Date().getFullYear();
+  let yearRev=0, yearOrd=0;
+  rows.forEach(r=>{
+    const amount=revKey?parseNumber(r[revKey]):0;
+    if(dateKey){
+      const d=parseDate(r[dateKey]);
+      if(d && d.getFullYear()===currentYear){yearRev+=amount;yearOrd++;}
+    }
+  });
+  return {yearRev, yearOrd, hasDate:!!dateKey};
+}
+
+function revealDashboard(){
+  document.getElementById('upload-gate').classList.add('hidden');
+  document.getElementById('dashboard-wrap').classList.add('active');
+  document.getElementById('navTabs').style.display='flex';
+  document.getElementById('hdrSummary').classList.add('active');
+  updateOverview();
+}
+
+function fmtEurShort(n){return '€'+Math.round(n).toLocaleString('nl-NL');}
+
+fileInput.addEventListener('change', (e)=>{
+  const file=e.target.files[0];
+  if(!file) return;
+  filenameEl.textContent=file.name;
+  showStatus('Bezig met inlezen...', '');
+  Papa.parse(file,{
+    header:true, skipEmptyLines:true,
+    complete:(res)=>{
+      try{
+        const rows=res.data;
+        const summary=computeSummaryFromCSV(rows);
+        // Always fall back to embedded YTD data if CSV doesn't yield anything
+        let hdrRev, hdrOrd;
+        if(summary && summary.yearRev>0){
+          hdrRev=summary.yearRev; hdrOrd=summary.yearOrd;
+        } else {
+          hdrRev=A.ytd.rev; hdrOrd=A.ytd.cnt;
+        }
+        document.getElementById('hdrRev').textContent=fmtEurShort(hdrRev);
+        document.getElementById('hdrOrd').textContent=hdrOrd.toLocaleString('nl-NL');
+        showStatus(rows.length+' regels ingelezen. Dashboard wordt geladen...', 'ok');
+        setTimeout(revealDashboard, 300);
+      }catch(err){
+        showStatus('Fout: '+err.message, 'err');
+      }
+    },
+    error:(err)=>showStatus('Fout bij inlezen: '+err.message, 'err')
+  });
+});
 </script>
 </body>
 </html>
