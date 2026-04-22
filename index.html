@@ -191,9 +191,12 @@ tbody td{padding:10px 20px;font-size:12px;font-family:'Poppins',sans-serif;font-
     </div>
     <div class="upload-sub" style="margin-top:8px;">Kies een CSV-export om het dashboard te openen.</div>
     <button type="button" class="btn-primary" onclick="document.getElementById('fileInput').click()">Kies CSV-bestand</button>
-    <input type="file" id="fileInput" accept=".csv,text/csv" style="display:none;" />
+    <input type="file" id="fileInput" accept=".csv,text/csv,.txt" style="display:none;" />
     <div class="filename" id="filename"></div>
     <div class="status-msg" id="status"></div>
+    <div style="margin-top:22px;font-size:12px;">
+      <a href="#" id="skipCsv" style="color:#6b7280;text-decoration:underline;cursor:pointer;">Dashboard openen zonder CSV</a>
+    </div>
   </div>
 </section>
 
@@ -616,7 +619,7 @@ function renderMoMChart(){
       {type:'line',label:'Omzet',data:revs,borderColor:C.accent,backgroundColor:g,borderWidth:2,pointRadius:3,pointHoverRadius:5,pointBackgroundColor:C.accent,fill:true,tension:0.35,order:1,yAxisID:'y'},
       {label:'Bars',data:revs,backgroundColor:revs.map((_,i)=>{const m=moms[i];return m===null||m===undefined?'rgba(0,0,0,0.06)':m>=0?'rgba(74,222,128,0.15)':'rgba(255,107,107,0.15)';}),borderColor:revs.map((_,i)=>{const m=moms[i];return m===null||m===undefined?'rgba(0,0,0,0.15)':m>=0?C.success:C.a3;}),borderWidth:1,borderRadius:3,order:2,yAxisID:'y'}
     ]},
-    options:{...baseOpts,layout:{padding:{top:18}},scales:{x:{...baseOpts.scales.x,ticks:{...baseOpts.scales.x.ticks,maxRotation:45}},y:{...baseOpts.scales.y,ticks:{...baseOpts.scales.y.ticks,callback:v=>fmtK(v)}}},plugins:{...baseOpts.plugins,legend:{display:false},tooltip:{...baseOpts.plugins.tooltip,callbacks:{label:(c)=>{if(c.datasetIndex!==0)return null;const i=c.dataIndex;const m=moms[i];const yo=yoys[i];return[`Omzet: ${fmt(c.raw)}`,m!==null&&m!==undefined?`MoM: ${pct(m)}`:'—',yo!==null&&yo!==undefined?`YoY: ${pct(yo)}`:'—'];}}}},
+    options:{...baseOpts,layout:{padding:{top:18}},scales:{x:{...baseOpts.scales.x,ticks:{...baseOpts.scales.x.ticks,maxRotation:45}},y:{...baseOpts.scales.y,ticks:{...baseOpts.scales.y.ticks,callback:v=>fmtK(v)}}},plugins:{...baseOpts.plugins,legend:{display:false},tooltip:{...baseOpts.plugins.tooltip,callbacks:{label:(c)=>{if(c.datasetIndex!==0)return null;const i=c.dataIndex;const m=moms[i];const yo=yoys[i];return[`Omzet: ${fmt(c.raw)}`,m!==null&&m!==undefined?`MoM: ${pct(m)}`:'—',yo!==null&&yo!==undefined?`YoY: ${pct(yo)}`:'—'];}}}}},
     plugins:[momPlugin]
   });
 }
@@ -762,6 +765,10 @@ function renderTable(){
 }
 function sortTbl(i){if(sortCol===i)sortDir*=-1;else{sortCol=i;sortDir=-1;}curPage=1;renderTable();}
 
+</script>
+
+<!-- Upload handler in its own script block so it runs even if the big script above errors -->
+<script>
 // ===== UPLOAD GATE =====
 const fileInput = document.getElementById('fileInput');
 const filenameEl = document.getElementById('filename');
@@ -819,40 +826,100 @@ function revealDashboard(){
   document.getElementById('dashboard-wrap').classList.add('active');
   document.getElementById('navTabs').style.display='flex';
   document.getElementById('hdrSummary').classList.add('active');
-  updateOverview();
+  try {
+    if(typeof updateOverview === 'function') updateOverview();
+  } catch(err){
+    console.error('Dashboard render error:', err);
+  }
 }
 
 function fmtEurShort(n){return '€'+Math.round(n).toLocaleString('nl-NL');}
 
-fileInput.addEventListener('change', (e)=>{
-  const file=e.target.files[0];
-  if(!file) return;
-  filenameEl.textContent=file.name;
+function handleFile(file){
+  if(!file){ showStatus('Geen bestand gekozen.', 'err'); return; }
+  filenameEl.textContent = file.name + ' (' + Math.round(file.size/1024) + ' KB)';
   showStatus('Bezig met inlezen...', '');
-  Papa.parse(file,{
-    header:true, skipEmptyLines:true,
-    complete:(res)=>{
-      try{
-        const rows=res.data;
-        const summary=computeSummaryFromCSV(rows);
-        // Always fall back to embedded YTD data if CSV doesn't yield anything
-        let hdrRev, hdrOrd;
-        if(summary && summary.yearRev>0){
-          hdrRev=summary.yearRev; hdrOrd=summary.yearOrd;
-        } else {
-          hdrRev=A.ytd.rev; hdrOrd=A.ytd.cnt;
-        }
-        document.getElementById('hdrRev').textContent=fmtEurShort(hdrRev);
-        document.getElementById('hdrOrd').textContent=hdrOrd.toLocaleString('nl-NL');
-        showStatus(rows.length+' regels ingelezen. Dashboard wordt geladen...', 'ok');
-        setTimeout(revealDashboard, 300);
-      }catch(err){
-        showStatus('Fout: '+err.message, 'err');
+
+  // Use FileReader + Papa.parse on text to avoid any File-based edge cases
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    try {
+      const text = ev.target.result || '';
+      if(!text.trim()){
+        showStatus('Bestand is leeg.', 'err');
+        return;
       }
-    },
-    error:(err)=>showStatus('Fout bij inlezen: '+err.message, 'err')
+      if(typeof Papa === 'undefined'){
+        // Papa didn't load — just reveal dashboard with embedded data
+        showStatus('Let op: CSV-parser niet geladen, dashboard toont ingebouwde data.', 'ok');
+        showEmbeddedSummary();
+        setTimeout(revealDashboard, 400);
+        return;
+      }
+      const res = Papa.parse(text, { header:true, skipEmptyLines:true });
+      const rows = res.data || [];
+      let hdrRev = 0, hdrOrd = 0, note = '';
+      const hasEmbedded = (typeof A !== 'undefined' && A && A.ytd);
+      try {
+        const summary = computeSummaryFromCSV(rows);
+        if(summary && summary.yearRev > 0){
+          hdrRev = summary.yearRev; hdrOrd = summary.yearOrd;
+          note = 'op basis van CSV';
+        } else if(hasEmbedded){
+          hdrRev = A.ytd.rev; hdrOrd = A.ytd.cnt;
+          note = 'CSV gelezen, cijfers uit ingebouwde data';
+        } else {
+          note = 'CSV gelezen';
+        }
+      } catch(e){
+        if(hasEmbedded){ hdrRev = A.ytd.rev; hdrOrd = A.ytd.cnt; }
+        note = 'CSV niet herkend';
+      }
+      document.getElementById('hdrRev').textContent = fmtEurShort(hdrRev);
+      document.getElementById('hdrOrd').textContent = hdrOrd.toLocaleString('nl-NL');
+      showStatus(rows.length + ' regels ingelezen — ' + note + '. Dashboard laden...', 'ok');
+      setTimeout(revealDashboard, 300);
+    } catch(err){
+      console.error(err);
+      showStatus('Fout: ' + err.message, 'err');
+    }
+  };
+  reader.onerror = function(){
+    showStatus('Kon bestand niet lezen.', 'err');
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function showEmbeddedSummary(){
+  try {
+    if(typeof A !== 'undefined' && A.ytd){
+      document.getElementById('hdrRev').textContent = fmtEurShort(A.ytd.rev);
+      document.getElementById('hdrOrd').textContent = A.ytd.cnt.toLocaleString('nl-NL');
+    } else {
+      document.getElementById('hdrRev').textContent = '—';
+      document.getElementById('hdrOrd').textContent = '—';
+    }
+  } catch(e){ /* no-op */ }
+}
+
+if(fileInput){
+  fileInput.addEventListener('change', (e)=>{
+    const file = e.target.files && e.target.files[0];
+    handleFile(file);
   });
-});
+} else {
+  console.error('fileInput not found in DOM');
+}
+
+// Fallback: open dashboard without CSV
+const skipEl = document.getElementById('skipCsv');
+if(skipEl){
+  skipEl.addEventListener('click', (e)=>{
+    e.preventDefault();
+    showEmbeddedSummary();
+    revealDashboard();
+  });
+}
 </script>
 </body>
 </html>
