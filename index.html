@@ -113,8 +113,8 @@ main{padding:24px 32px 48px;max-width:1400px;margin:0 auto;}
 .cmp-expected{height:100%;background:repeating-linear-gradient(45deg,#e2e5e8,#e2e5e8 6px,#edf0f3 6px,#edf0f3 12px);transition:width 0.4s;border-radius:0 6px 6px 0;}
 /* Red bar at the bottom edge of the cmp-bar shows cancelled (lost) value at the same scale.
    Sits BELOW the main fill so revenue isn't visually inflated — it's a "this much was lost" cue. */
-.cmp-cancelled{position:absolute;bottom:0;left:0;height:5px;background:#f59e0b;border-radius:0 0 6px 6px;transition:width 0.4s;pointer-events:none;}
-.cmp-row.current .cmp-cancelled{background:#fb923c;}
+/* Round 13: orange "cancelled" strip on year-compare rows removed — lost-order insight now
+   lives in a dedicated modal opened from the Avg. lost order tile. */
 .cmp-row.current .cmp-fill{background:linear-gradient(90deg,var(--accent),#000);border-radius:6px 0 0 6px;}
 .cmp-row.partial .cmp-fill{border-radius:6px 0 0 6px;}
 .cmp-value{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;min-width:78px;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:1px;}
@@ -143,11 +143,6 @@ main{padding:24px 32px 48px;max-width:1400px;margin:0 auto;}
 .mini-sub .delta{font-weight:700;}
 .mini-exp{font-size:11px;font-weight:500;color:var(--muted2);margin-left:6px;letter-spacing:0;}
 .mini-exp-delta{font-size:10px;font-weight:500;color:var(--muted2);margin-left:0;flex-basis:100%;margin-top:1px;}
-/* Round 11: Avg lost order uses muted styling so it doesn't compete visually with the core revenue tiles */
-.mini.mini-soft{background:transparent;border:1px dashed var(--border);}
-.mini.mini-soft .mini-lbl{color:var(--muted2);letter-spacing:0.4px;}
-.mini.mini-soft .mini-val{font-size:16px;font-weight:600;color:var(--muted);letter-spacing:-0.2px;}
-.mini.mini-soft .mini-sub{color:var(--muted2);font-size:10.5px;}
 .delta.up{color:var(--success);}
 .delta.down{color:var(--down);}
 .delta.neutral{color:var(--muted2);}
@@ -398,7 +393,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       <div class="mini"><div class="mini-lbl">Active orders</div><div class="mini-val" id="kpiOrd">0</div><div class="mini-sub" id="kpiOrdSub"><span class="delta neutral">—</span> vs prior year · Complete + Processing</div></div>
       <div class="mini mini-click" id="kpiCanTile" title="Click for cancelled orders + emails"><div class="mini-lbl">Cancelled <span class="mini-hint">↗</span></div><div class="mini-val" id="kpiCan">0</div><div class="mini-sub" id="kpiCanSub"><span class="delta neutral">—</span> vs prior year</div></div>
       <div class="mini"><div class="mini-lbl">Avg. order value</div><div class="mini-val" id="kpiAov">€0</div><div class="mini-sub" id="kpiAovSub"><span class="delta neutral">—</span> vs prior year</div></div>
-      <div class="mini mini-soft"><div class="mini-lbl">Avg. lost order</div><div class="mini-val" id="kpiAvgLost">€0</div><div class="mini-sub" id="kpiAvgLostSub"><span class="delta neutral">—</span> vs prior year · avg cancelled</div></div>
+      <div class="mini mini-click" id="kpiAvgLostTile" title="Click for cancelled-order insights — trend, distribution, comparison"><div class="mini-lbl">Avg. lost order <span class="mini-hint">↗</span></div><div class="mini-val" id="kpiAvgLost">€0</div><div class="mini-sub" id="kpiAvgLostSub"><span class="delta neutral">—</span> vs prior year · avg cancelled</div></div>
     </div>
 
     <!-- TREND: multi-year lines -->
@@ -1121,18 +1116,11 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       const rowCls = 'cmp-row' + (r.isCurrent ? ' current' : '') + (r.isPartial ? ' partial' : '');
       const actualPct = maxV > 0 ? (cur / maxV * 100) : 0;
       const expectedExtraPct = (r.expected !== null && r.expected > cur) ? ((r.expected - cur) / maxV * 100) : 0;
-      // Red "cancelled (lost)" indicator — only on the revenue table (key === 'result').
-      // Scaled to the same maxV so the bar visually compares to revenue, but it sits as a
-      // separate strip at the bottom of the cmp-bar — it does NOT extend the revenue bar.
-      const cancelledVal = (key === 'result') ? (r.agg.cancelledValue || 0) : 0;
-      const cancelledPct = (cancelledVal > 0 && maxV > 0) ? Math.min(100, (cancelledVal / maxV * 100)) : 0;
-      const cancelledOverlay = cancelledPct > 0
-        ? '<div class="cmp-cancelled" style="width:' + cancelledPct + '%;" title="' + fmtEur(cancelledVal) + ' lost to cancellations (not in revenue)"></div>'
-        : '';
+      // Round 13: cancelled overlay removed from the cmp-bar. Lost-order insight moved
+      // into a dedicated modal triggered by the Avg. lost order tile.
       const barHtml = '<div class="cmp-bar">' +
           '<div class="cmp-fill" style="width:' + actualPct + '%;"></div>' +
           (expectedExtraPct > 0 ? '<div class="cmp-expected" style="width:' + expectedExtraPct + '%;" title="Expected at current pace"></div>' : '') +
-          cancelledOverlay +
         '</div>';
       // Build the inner pieces of the value column, then wrap once at the end so we can
       // cleanly append the red "−€X lost" sub-line inside the cmp-value flex container.
@@ -2512,6 +2500,136 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
         window.__cancRows = rows;
       }
     }
+    else if (type === 'avglost') {
+      // Deeper insight into cancelled / lost orders: trend of avg lost-order value
+      // over the last 12 months, distribution of cancelled orders by price bucket,
+      // comparison with the avg order value, plus the top 5 biggest cancellations.
+      title.textContent = 'Avg. lost order · ' + spec.label;
+      const curKey  = spec.useOffset ? 0 : (state.year || currentYear());
+      const prevKey = spec.useOffset ? -1 : (curKey - 1);
+      const curAgg  = aggForYear(spec, curKey);
+      const prevAgg = aggForYear(spec, prevKey);
+      const curAvgLost  = curAgg.cancelledCount  > 0 ? (curAgg.cancelledValue  / curAgg.cancelledCount)  : 0;
+      const prevAvgLost = prevAgg.cancelledCount > 0 ? (prevAgg.cancelledValue / prevAgg.cancelledCount) : 0;
+      const ratio = curAgg.aov > 0 ? (curAvgLost / curAgg.aov) : 0;
+      const dh = (a, b) => b > 0 ? ((a/b)-1)*100 : null;
+      const dAvg   = dh(curAvgLost, prevAvgLost);
+      const dCount = dh(curAgg.cancelledCount,  prevAgg.cancelledCount);
+      const dValue = dh(curAgg.cancelledValue,  prevAgg.cancelledValue);
+      // Cancelled-order = bad, so colour is inverted (down on delta = green).
+      const dd = v => v === null ? '<span class="delta neutral">—</span>' : '<span class="delta ' + trendCls(-v) + '">' + trendIcon(-v) + ' ' + pct(v, 0) + '</span>';
+      sub.textContent = fmtNum(curAgg.cancelledCount) + ' cancelled · ' + fmtEur(curAgg.cancelledValue) + ' lost · avg ' + (ratio > 0 ? (ratio * 100).toFixed(0) + '% of avg order value' : '—');
+
+      // Collect the current period's cancelled orders (used for distribution + top-5)
+      const cancRows = [];
+      for (const o of state.orders) {
+        if (!o._date || !spec.matches(o, curKey) || !isCancelled(o)) continue;
+        cancRows.push(o);
+      }
+      cancRows.sort((a, b) => b.revenue - a.revenue);
+
+      // 4-tile summary row
+      const summaryHtml = '<div class="refunds-summary" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;">' +
+        '<div class="rsum-item"><div class="rsum-lbl">Avg. lost order</div><div class="rsum-val">' + fmtEur(curAvgLost) + '</div><div class="rsum-sub">' + dd(dAvg) + ' vs prior</div></div>' +
+        '<div class="rsum-item"><div class="rsum-lbl">Cancelled orders</div><div class="rsum-val">' + fmtNum(curAgg.cancelledCount) + '</div><div class="rsum-sub">' + dd(dCount) + ' vs prior</div></div>' +
+        '<div class="rsum-item"><div class="rsum-lbl">Lost revenue</div><div class="rsum-val">' + fmtEur(curAgg.cancelledValue) + '</div><div class="rsum-sub">' + dd(dValue) + ' vs prior</div></div>' +
+        '<div class="rsum-item"><div class="rsum-lbl">vs Avg order value</div><div class="rsum-val">' + (ratio > 0 ? (ratio * 100).toFixed(0) + '%' : '—') + '</div><div class="rsum-sub">' + fmtEur(curAgg.aov) + ' avg order</div></div>' +
+      '</div>';
+
+      // Monthly avg-lost-order trend: current year vs previous year. Only draw when at
+      // least one of the two years has any cancellations (avoids an empty chart).
+      const curY = state.year || currentYear();
+      const prevY = curY - 1;
+      const monthlyAvg = (y) => {
+        const sum = new Array(12).fill(0), cnt = new Array(12).fill(0);
+        for (const o of state.orders) {
+          if (!o._date || o._y !== y || !isCancelled(o)) continue;
+          sum[o._m - 1] += o.revenue; cnt[o._m - 1] += 1;
+        }
+        return sum.map((s, i) => cnt[i] > 0 ? s / cnt[i] : null);
+      };
+      const curSeries  = monthlyAvg(curY);
+      const prevSeries = monthlyAvg(prevY);
+      const hasTrend = curSeries.some(v => v !== null) || prevSeries.some(v => v !== null);
+      const trendHtml = hasTrend
+        ? '<div class="card-title" style="margin-top:14px;">Monthly avg. lost order</div>' +
+          '<div class="chart-wrap sm"><canvas id="modalChart"></canvas></div>'
+        : '';
+
+      // Distribution of cancelled-order values by bucket
+      const buckets = [
+        { lbl: '€0–25',   lo: 0,   hi: 25 },
+        { lbl: '€25–50',  lo: 25,  hi: 50 },
+        { lbl: '€50–100', lo: 50,  hi: 100 },
+        { lbl: '€100–200',lo: 100, hi: 200 },
+        { lbl: '€200–500',lo: 200, hi: 500 },
+        { lbl: '€500+',   lo: 500, hi: Infinity },
+      ];
+      buckets.forEach(b => { b.count = 0; b.value = 0; });
+      cancRows.forEach(o => {
+        const b = buckets.find(b => o.revenue >= b.lo && o.revenue < b.hi);
+        if (b) { b.count += 1; b.value += o.revenue; }
+      });
+      const maxBucketCount = Math.max(1, ...buckets.map(b => b.count));
+      const distHtml = cancRows.length
+        ? '<div class="card-title" style="margin-top:14px;">Cancellations by order value</div>' +
+          '<div class="bars" style="margin-top:8px;">' +
+          buckets.map(b => {
+            const share = cancRows.length > 0 ? (b.count / cancRows.length * 100).toFixed(0) : '0';
+            return '<div class="bar-row">' +
+              '<div class="bar-lbl"><span>' + b.lbl + '</span><span class="n"><b>' + fmtNum(b.count) + '</b> · ' + share + '% · ' + fmtEurShort(b.value) + '</span></div>' +
+              '<div class="bar-track"><div class="bar-fill" style="width:' + (b.count / maxBucketCount * 100) + '%;background:linear-gradient(90deg,#fbbf24,#f59e0b);"></div></div>' +
+            '</div>';
+          }).join('') + '</div>'
+        : '';
+
+      // Top-5 biggest cancellations table
+      const topHtml = cancRows.length
+        ? '<div class="card-title" style="margin-top:18px;">Biggest cancellations</div>' +
+          '<div class="table-wrap"><table class="table"><thead><tr>' +
+            '<th>Date</th><th>Order</th><th>Customer</th><th class="num">Lost</th>' +
+          '</tr></thead><tbody>' +
+          cancRows.slice(0, 5).map(o => {
+            return '<tr>' +
+              '<td>' + escHtml(o.date || '—') + '</td>' +
+              '<td>' + escHtml(o.id || '—') + '</td>' +
+              '<td>' + escHtml((o.customer || '—') + (o.country ? ' · ' + o.country : '')) + '</td>' +
+              '<td class="num"><b>' + fmtEur(o.revenue) + '</b></td>' +
+            '</tr>';
+          }).join('') + '</tbody></table></div>'
+        : '';
+
+      if (!cancRows.length && !hasTrend) {
+        body.innerHTML = summaryHtml + '<div class="empty">No cancelled orders in this period</div>';
+      } else {
+        body.innerHTML = summaryHtml + trendHtml + distHtml + topHtml;
+        if (hasTrend) {
+          charts.modalChart = new Chart(document.getElementById('modalChart'), {
+            type: 'line',
+            data: {
+              labels: MONTH_NAMES,
+              datasets: [
+                { label: curY.toString(),  data: curSeries,  borderColor: '#f59e0b', backgroundColor: '#f59e0b22', borderWidth: 2.6, pointRadius: 3, tension: 0.28, spanGaps: true, fill: false },
+                { label: prevY.toString(), data: prevSeries, borderColor: '#94a3b8', backgroundColor: '#94a3b822', borderWidth: 1.6, pointRadius: 0, tension: 0.28, borderDash: [4,4], spanGaps: true, fill: false }
+              ]
+            },
+            options: {
+              responsive: true, maintainAspectRatio: false,
+              interaction: { mode: 'index', intersect: false },
+              plugins: {
+                legend: { display: true, position: 'bottom', labels: { font: { family: 'Poppins', size: 11 }, boxWidth: 12 } },
+                tooltip: { backgroundColor: '#fff', borderColor: '#e5e7eb', borderWidth: 1, titleColor: '#111', bodyColor: '#374151',
+                  callbacks: { label: c => c.dataset.label + ': ' + (c.parsed.y === null ? '—' : fmtEur(c.parsed.y)) } }
+              },
+              scales: {
+                x: { grid: { display: false }, ticks: { font: { family: 'Poppins', size: 10 }, color: '#6b7280' } },
+                y: { grid: { color: '#eef0f1' }, ticks: { font: { family: 'Poppins', size: 10 }, color: '#6b7280', callback: v => fmtEurShort(v) } }
+              }
+            }
+          });
+        }
+      }
+    }
     else if (type === 'refunds') {
       title.textContent = 'Refunds · ' + spec.label;
       sub.textContent = 'All completed orders with a refund, largest first';
@@ -3168,6 +3286,12 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       const canTile = document.getElementById('kpiCanTile');
       if (canTile) {
         canTile.addEventListener('click', () => openModal('cancelled'));
+      }
+      // Avg. lost order KPI tile: clickable — opens a deeper-insight modal with monthly
+      // avg-lost trend, distribution by price bucket, and the biggest cancellations.
+      const avgLostTile = document.getElementById('kpiAvgLostTile');
+      if (avgLostTile) {
+        avgLostTile.addEventListener('click', () => openModal('avglost'));
       }
       _boundOnce = true;
     }
