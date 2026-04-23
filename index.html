@@ -59,6 +59,14 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 .hdr-stat{display:flex;flex-direction:column;align-items:flex-end;gap:1px;}
 .hdr-stat-lbl{font-size:9px;font-weight:600;color:var(--muted);letter-spacing:0.6px;text-transform:uppercase;}
 .hdr-stat-val{font-size:14px;font-weight:700;color:var(--text);}
+.hdr-status{display:flex;align-items:center;gap:8px;margin-right:12px;}
+.hdr-status-lbl{font-size:9.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);}
+.hdr-status-select{height:32px;min-width:200px;padding:6px 28px 6px 12px;font-size:11.5px;}
+.hdr-apply-btn{height:32px;padding:0 14px;font-size:11px;font-weight:700;letter-spacing:.3px;border:1px solid var(--accent);border-radius:7px;background:var(--accent);color:#fff;cursor:pointer;font-family:'Poppins',sans-serif;transition:opacity 0.15s, background 0.15s;}
+.hdr-apply-btn:hover:not(:disabled){background:#2563eb;border-color:#2563eb;}
+.hdr-apply-btn:disabled{background:#f1f5f9;color:#94a3b8;border-color:#e2e8f0;cursor:default;}
+.hdr-apply-btn.pulse{animation:applyPulse 1.4s ease-in-out infinite;}
+@keyframes applyPulse{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,0.45);}50%{box-shadow:0 0 0 6px rgba(59,130,246,0);}}
 .hdr-logout{padding:7px 14px;font-size:11px;font-weight:600;border:1px solid var(--border);border-radius:7px;background:#fff;color:var(--muted);cursor:pointer;font-family:'Poppins',sans-serif;}
 .hdr-logout:hover{border-color:var(--accent);color:var(--accent);}
 
@@ -103,6 +111,10 @@ main{padding:24px 32px 48px;max-width:1400px;margin:0 auto;}
 .cmp-bar{height:24px;background:var(--surface2);border-radius:6px;overflow:hidden;position:relative;display:flex;}
 .cmp-fill{height:100%;background:linear-gradient(90deg,var(--accent),#333);border-radius:6px 0 0 6px;transition:width 0.4s;}
 .cmp-expected{height:100%;background:repeating-linear-gradient(45deg,#e2e5e8,#e2e5e8 6px,#edf0f3 6px,#edf0f3 12px);transition:width 0.4s;border-radius:0 6px 6px 0;}
+/* Red bar at the bottom edge of the cmp-bar shows cancelled (lost) value at the same scale.
+   Sits BELOW the main fill so revenue isn't visually inflated — it's a "this much was lost" cue. */
+.cmp-cancelled{position:absolute;bottom:0;left:0;height:5px;background:#f59e0b;border-radius:0 0 6px 6px;transition:width 0.4s;pointer-events:none;}
+.cmp-row.current .cmp-cancelled{background:#fb923c;}
 .cmp-row.current .cmp-fill{background:linear-gradient(90deg,var(--accent),#000);border-radius:6px 0 0 6px;}
 .cmp-row.partial .cmp-fill{border-radius:6px 0 0 6px;}
 .cmp-value{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;min-width:78px;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:1px;}
@@ -131,6 +143,11 @@ main{padding:24px 32px 48px;max-width:1400px;margin:0 auto;}
 .mini-sub .delta{font-weight:700;}
 .mini-exp{font-size:11px;font-weight:500;color:var(--muted2);margin-left:6px;letter-spacing:0;}
 .mini-exp-delta{font-size:10px;font-weight:500;color:var(--muted2);margin-left:0;flex-basis:100%;margin-top:1px;}
+/* Round 11: Avg lost order uses muted styling so it doesn't compete visually with the core revenue tiles */
+.mini.mini-soft{background:transparent;border:1px dashed var(--border);}
+.mini.mini-soft .mini-lbl{color:var(--muted2);letter-spacing:0.4px;}
+.mini.mini-soft .mini-val{font-size:16px;font-weight:600;color:var(--muted);letter-spacing:-0.2px;}
+.mini.mini-soft .mini-sub{color:var(--muted2);font-size:10.5px;}
 .delta.up{color:var(--success);}
 .delta.down{color:var(--down);}
 .delta.neutral{color:var(--muted2);}
@@ -227,9 +244,11 @@ main{padding:24px 32px 48px;max-width:1400px;margin:0 auto;}
 .dow-row .val .cnt{color:var(--muted2);font-weight:500;margin-left:6px;}
 
 /* ============ DONUT ============ */
-.donut-wrap{display:grid;grid-template-columns:180px 1fr;gap:20px;align-items:center;min-height:200px;}
-.donut-wrap canvas{max-height:200px;}
-.donut-legend{display:flex;flex-direction:column;gap:8px;}
+.donut-wrap{display:grid;grid-template-columns:200px 1fr;gap:28px;align-items:center;min-height:220px;}
+.donut-canvas-box{position:relative;width:200px;height:200px;}
+.donut-canvas-box canvas{width:200px!important;height:200px!important;max-width:200px;max-height:200px;}
+.donut-wrap canvas{max-height:220px;}
+.donut-legend{display:flex;flex-direction:column;gap:10px;padding-left:4px;}
 .table-sortable th.sortable{cursor:pointer;user-select:none;position:relative;padding-right:20px;}
 .table-sortable th.sortable:hover{color:var(--accent);}
 .table-sortable th.sortable::after{content:'⇅';position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;opacity:.35;}
@@ -242,9 +261,38 @@ main{padding:24px 32px 48px;max-width:1400px;margin:0 auto;}
 .refunds-summary .rsum-sub{font-size:10px;color:var(--muted2);font-weight:500;}
 .mailto{color:var(--accent);text-decoration:none;border-bottom:1px dashed rgba(0,0,0,0.15);}
 .mailto:hover{color:#000;border-bottom-color:currentColor;}
+.mail-actions{display:inline-flex;align-items:center;gap:6px;flex-wrap:nowrap;}
+.mail-btn{font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:#fff;color:var(--text);cursor:pointer;letter-spacing:.1px;transition:border-color .12s,background .12s;}
+.mail-btn:hover{border-color:var(--accent);background:#f8fafc;}
+.mail-btn--apple{}
+.mail-btn--gmail{}
+.mail-btn--sm{padding:2px 7px;font-size:11px;line-height:1.4;border-radius:6px;}
+.mail-actions--inline{gap:4px;}
+.mail-cell{white-space:nowrap;}
+.mail-lang-pop{position:absolute;z-index:200;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.12);padding:10px 12px;min-width:200px;font-family:'Poppins',sans-serif;}
+.mail-lang-pop[hidden]{display:none!important;}
+.mail-lang-pop-head{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+.mail-lang-pop-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.mail-lang-pop-btn{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:7px;padding:6px 9px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Poppins',sans-serif;color:var(--text);transition:border-color .12s,background .12s;}
+.mail-lang-pop-btn:hover{border-color:var(--accent);background:#f8fafc;}
+.mlp-flag{font-size:14px;line-height:1;}
+.mail-lang-pop-auto{margin-top:8px;border-top:1px dashed var(--border);padding-top:8px;}
+.mail-lang-pop-auto-btn{width:100%;background:#f8fafc;border:1px solid var(--border);border-radius:7px;padding:6px 9px;font-size:11.5px;font-weight:500;cursor:pointer;font-family:'Poppins',sans-serif;color:var(--muted);transition:color .12s,background .12s;}
+.mail-lang-pop-auto-btn:hover{color:var(--text);background:#f1f5f9;}
+.mail-langs{display:inline-flex;align-items:center;gap:2px;padding-left:6px;margin-left:4px;border-left:1px solid var(--border);}
+.flag-btn{background:none;border:0;padding:2px 4px;font-size:14px;cursor:pointer;border-radius:4px;line-height:1;}
+.flag-btn:hover{background:#f1f5f9;}
+.lang-badge{display:inline-block;padding:2px 7px;font-size:9.5px;font-weight:700;letter-spacing:.4px;border-radius:4px;background:#f3f4f6;color:#4b5563;border:1px solid var(--border);}
+.lang-badge.lang-nl{background:#fef3c7;color:#92400e;border-color:#fde68a;}
+.lang-badge.lang-en{background:#dbeafe;color:#1e40af;border-color:#bfdbfe;}
+.lang-badge.lang-de{background:#fee2e2;color:#991b1b;border-color:#fecaca;}
+.lang-badge.lang-fr{background:#e0e7ff;color:#3730a3;border-color:#c7d2fe;}
+.orders-search{background:#fff;}
+.orders-search::placeholder{color:var(--muted2);font-weight:500;}
 .status-badge{display:inline-block;padding:2px 8px;font-size:10px;font-weight:600;border-radius:10px;letter-spacing:.2px;text-transform:uppercase;font-family:'Poppins',sans-serif;background:#f3f4f6;color:#4b5563;border:1px solid transparent;}
 .status-badge.status-complete{background:#ecfdf5;color:#047857;border-color:#d1fae5;}
 .status-badge.status-cancelled{background:#fef2f2;color:#b91c1c;border-color:#fecaca;}
+.status-badge.status-processing{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe;}
 .status-badge.status-other{background:#f3f4f6;color:#4b5563;}
 tr.row-cancelled td{color:var(--muted);text-decoration:line-through;text-decoration-color:#fca5a5;text-decoration-thickness:1px;}
 tr.row-cancelled td .status-badge{text-decoration:none;}
@@ -289,6 +337,17 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
     <img src="logo.png" alt="Surfcenter" class="hdr-logo" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'Surfcenter',style:'font-weight:700;letter-spacing:-0.3px;'}));">
     <div class="hdr-title">Analytics</div>
     <div class="hdr-spacer"></div>
+    <div class="hdr-status">
+      <span class="hdr-status-lbl">Status</span>
+      <select class="period-select hdr-status-select" id="globalStatusFilter" title="Filter all views by order status">
+        <option value="all">All statuses</option>
+        <option value="complete">Complete only</option>
+        <option value="complete+processing" selected>Complete + Processing</option>
+        <option value="processing">Processing only</option>
+        <option value="cancelled">Cancelled only</option>
+      </select>
+      <button class="hdr-apply-btn" id="btnApplyStatus" title="Apply this status filter to all revenue / KPI calculations" disabled>Apply</button>
+    </div>
     <button class="hdr-logout" id="btnLogout">Logout</button>
   </header>
 
@@ -336,10 +395,10 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
     <!-- MINI KPIs for selected period -->
     <div class="mini-grid">
       <div class="mini"><div class="mini-lbl">Result revenue</div><div class="mini-val" id="kpiNet">€0</div><div class="mini-sub" id="kpiNetSub"><span class="delta neutral">—</span> vs prior year</div></div>
-      <div class="mini"><div class="mini-lbl">Completed orders</div><div class="mini-val" id="kpiOrd">0</div><div class="mini-sub" id="kpiOrdSub"><span class="delta neutral">—</span> vs prior year</div></div>
-      <div class="mini"><div class="mini-lbl">Refunds</div><div class="mini-val" id="kpiRef">€0</div><div class="mini-sub" id="kpiRefSub"><span class="delta neutral">—</span> vs prior year</div></div>
+      <div class="mini"><div class="mini-lbl">Active orders</div><div class="mini-val" id="kpiOrd">0</div><div class="mini-sub" id="kpiOrdSub"><span class="delta neutral">—</span> vs prior year · Complete + Processing</div></div>
       <div class="mini mini-click" id="kpiCanTile" title="Click for cancelled orders + emails"><div class="mini-lbl">Cancelled <span class="mini-hint">↗</span></div><div class="mini-val" id="kpiCan">0</div><div class="mini-sub" id="kpiCanSub"><span class="delta neutral">—</span> vs prior year</div></div>
       <div class="mini"><div class="mini-lbl">Avg. order value</div><div class="mini-val" id="kpiAov">€0</div><div class="mini-sub" id="kpiAovSub"><span class="delta neutral">—</span> vs prior year</div></div>
+      <div class="mini mini-soft"><div class="mini-lbl">Avg. lost order</div><div class="mini-val" id="kpiAvgLost">€0</div><div class="mini-sub" id="kpiAvgLostSub"><span class="delta neutral">—</span> vs prior year · avg cancelled</div></div>
     </div>
 
     <!-- TREND: multi-year lines -->
@@ -399,7 +458,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
           </div>
           <div class="card-tools"><button class="btn-expand" data-expand="status" title="Expand">⤢</button></div>
         </div>
-        <div class="donut-wrap"><canvas id="statusChart"></canvas><div class="donut-legend" id="statusLegend"></div></div>
+        <div class="donut-wrap"><div class="donut-canvas-box"><canvas id="statusChart"></canvas></div><div class="donut-legend" id="statusLegend"></div></div>
       </div>
     </div>
 
@@ -413,8 +472,14 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
         <div class="card-tools"><button class="btn-expand" data-expand="customers" title="Expand">⤢</button></div>
       </div>
       <div class="table-wrap">
-        <table class="table">
-          <thead><tr><th class="rank">#</th><th>Customer</th><th>Country</th><th class="num">Orders</th><th class="num">Revenue</th></tr></thead>
+        <table class="table table-sortable" id="custTable">
+          <thead><tr>
+            <th class="rank">#</th>
+            <th data-csort="name" class="sortable">Customer</th>
+            <th data-csort="count" class="sortable num">Orders</th>
+            <th data-csort="net" class="sortable num">Revenue</th>
+            <th data-csort="allCount" class="sortable num" title="All-time orders + revenue across the full dataset">All-time</th>
+          </tr></thead>
           <tbody id="custBody"></tbody>
         </table>
       </div>
@@ -428,6 +493,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
           <div class="card-sub" id="ordersSub">Most recent orders in selected period</div>
         </div>
         <div class="card-tools" style="gap:10px;">
+          <input type="search" id="ordersSearch" class="period-input orders-search" placeholder="Search order, customer, email…" style="min-width:220px;" />
           <select class="period-select" id="ordersStatusFilter" title="Filter by status"></select>
           <button class="btn-expand" data-expand="orders" title="Expand">⤢</button>
         </div>
@@ -442,6 +508,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
             <th data-sort="gross" class="sortable num">Gross</th>
             <th data-sort="refund" class="sortable num">Refund</th>
             <th data-sort="net" class="sortable num">Net</th>
+            <th title="Send follow-up mail (cancelled orders with email)">Mail</th>
           </tr></thead>
           <tbody id="ordersBody"></tbody>
         </table>
@@ -460,8 +527,15 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
         </div>
         <div class="refunds-summary" id="refundsSummary"></div>
         <div class="table-wrap" style="max-height:280px;">
-          <table class="table">
-            <thead><tr><th>Date</th><th>Order</th><th>Customer</th><th class="num">Gross</th><th class="num">Refund</th><th class="num">%</th></tr></thead>
+          <table class="table table-sortable" id="refundsTable">
+            <thead><tr>
+              <th data-rsort="date" class="sortable">Date</th>
+              <th data-rsort="id" class="sortable">Order</th>
+              <th data-rsort="customer" class="sortable">Customer</th>
+              <th data-rsort="gross" class="sortable num">Gross</th>
+              <th data-rsort="refund" class="sortable num">Refund</th>
+              <th data-rsort="share" class="sortable num">%</th>
+            </tr></thead>
             <tbody id="refundsBody"></tbody>
           </table>
         </div>
@@ -492,6 +566,20 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       <button class="btn-close" id="btnCloseModal" title="Close (Esc)">✕</button>
     </div>
     <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- Mail language picker — small popover anchored under the clicked Apple-mail button -->
+<div class="mail-lang-pop" id="mailLangPop" hidden>
+  <div class="mail-lang-pop-head">Choose language</div>
+  <div class="mail-lang-pop-grid">
+    <button type="button" data-lang="nl" class="mail-lang-pop-btn"><span class="mlp-flag">🇳🇱</span><span>Nederlands</span></button>
+    <button type="button" data-lang="en" class="mail-lang-pop-btn"><span class="mlp-flag">🇬🇧</span><span>English</span></button>
+    <button type="button" data-lang="de" class="mail-lang-pop-btn"><span class="mlp-flag">🇩🇪</span><span>Deutsch</span></button>
+    <button type="button" data-lang="fr" class="mail-lang-pop-btn"><span class="mlp-flag">🇫🇷</span><span>Français</span></button>
+  </div>
+  <div class="mail-lang-pop-auto">
+    <button type="button" data-lang="auto" class="mail-lang-pop-auto-btn">Auto-detect from country</button>
   </div>
 </div>
 
@@ -577,7 +665,15 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
     statuses: new Set(['Complete','Processing']),
     // Orders table: filter + sort. Default bundle Complete + Processing = all "live" orders.
     ordersFilter: 'complete+processing',
+    // Revenue filter: what's counted in Result Revenue, Active orders, all KPIs, trends, bars.
+    // Independent from ordersFilter. Changed only when user clicks "Apply" button so
+    // the heavy re-render isn't triggered on every dropdown change.
+    revenueFilter: 'complete+processing',
+    ordersQuery: '',
     ordersSort: { col: 'date', dir: 'desc' },
+    // Top customers + refunds tables: independent sortable columns
+    customersSort: { col: 'net', dir: 'desc' },   // # | name | count | net | allCount | allNet
+    refundsSort:   { col: 'refund', dir: 'desc' },// date | id | customer | gross | refund | share | net
   };
 
   // ============ UTIL ============
@@ -725,10 +821,106 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
   }
 
   // ---- Status helpers --------------------------------------------------------
-  const isComplete  = o => (o.status || '').toString().toLowerCase() === 'complete';
-  const isCancelled = o => { const s = (o.status || '').toString().toLowerCase(); return s === 'canceled' || s === 'cancelled'; };
-  // Revenue ONLY counts Complete orders; refunds subtract from that.
-  const orderRev    = o => isComplete(o) ? (o.revenue - o.refund) : 0;
+  const isComplete   = o => (o.status || '').toString().toLowerCase() === 'complete';
+  const isProcessing = o => (o.status || '').toString().toLowerCase() === 'processing';
+  const isCancelled  = o => { const s = (o.status || '').toString().toLowerCase(); return s === 'canceled' || s === 'cancelled'; };
+  // Revenue ALWAYS counts only Complete + Processing — these are the orders that
+  // actually generated money. Cancelled is shown separately (in red) and is NOT
+  // included in result revenue or in the "expected at current pace" projection.
+  // The status dropdown only filters the orders TABLE; revenue stays stable.
+  // Revenue counts whichever statuses the user has APPLIED via the header dropdown.
+  // Default = complete + processing. Dropdown change alone does nothing; user must click
+  // the Apply button next to the dropdown to push the new filter into revenue math.
+  // Note: orderMatchesFilter falls back to orderMatchesFilter-style matching, so even
+  // single-status bundles like 'processing' or 'cancelled' are honoured here.
+  const countsRevenue = o => orderMatchesFilter(o, state.revenueFilter || 'complete+processing');
+  const orderRev    = o => countsRevenue(o) ? (o.revenue - o.refund) : 0;
+
+  // ============ MAIL TEMPLATES (cancelled-order follow-up) ============
+  // Lang detected from shipping/billing country; defaults to EN.
+  function detectLang(country){
+    const c = (country || '').toString().toLowerCase();
+    if (/nederland|netherlands|holland|\bnl\b/.test(c)) return 'nl';
+    if (/belgi|belgium|vlaand/.test(c))                 return 'nl'; // default BE to NL
+    if (/deutschland|germany|austria|osterreich|österreich|\bde\b|\bat\b|schweiz|switzerland|\bch\b/.test(c)) return 'de';
+    if (/france|frankrijk|\bfr\b/.test(c))              return 'fr';
+    return 'en';
+  }
+  function firstName(fullname){
+    const s = (fullname || '').toString().trim();
+    if (!s) return '';
+    const first = s.split(/\s+/)[0];
+    // Title case
+    return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+  }
+  // MAIL_TPL_BEGIN — auto-generated by build.js from mail-templates/*.txt — DO NOT edit here
+  const MAIL_TPL = {
+    nl: { subject: "{{voornaam}}, mag ik je iets vragen?", body: "Hi {{voornaam}},\n\nIk zag dat je je bestelling bij ons niet hebt afgerond — dat begrijpen we natuurlijk.\n\nIk ben benieuwd wat de reden was. Zou je dat kort willen laten weten? Gewoon zodat we hiervan kunnen leren — een korte reply is al genoeg 👍\n\nBijvoorbeeld:\n– Levertijd te lang\n– Toch niet nodig / van gedachten veranderd\n– Verkeerd product gekozen\n– Betaling lukte niet\n– Elders besteld\n– Anders, namelijk: …\n\nDaar help je ons echt mee om te verbeteren.\n\nAls bedankje krijg je bij je volgende bestelling van ons:\n– een Surfcenter cap https://surf-center.com/nl/surfcenter-cap-2024-black-6panel-trucker\n– óf een Surfcenter Sticker Set https://surf-center.com/nl/surfcenter-sticker-set-white-on-black\n\nLaat bij je volgende bestelling even weten welke je wilt, dan regel ik dat voor je 🤙🏻\n\nIs je bestelling nog relevant, maar kun je nog wat hulp gebruiken? Laat het gerust weten, dan denk ik graag met je mee.\n\nGroet,\nTeam Surfcenter" },
+    en: { subject: "{{voornaam}}, can I ask you something?", body: "Hi {{voornaam}},\n\nI noticed you didn't complete your order with us — no worries at all.\n\nI'm curious what the reason was. Would you mind letting me know briefly? Just so we can learn from it — a quick reply is more than enough 👍\n\nFor example:\n– Delivery time was too long\n– Changed my mind / no longer needed\n– Chose the wrong product\n– Payment didn't work\n– Ordered elsewhere\n– Other, namely: …\n\nThis really helps us improve.\n\nAs a thank you, you'll receive with your next order:\n– a Surfcenter cap https://surf-center.com/nl/surfcenter-cap-2024-black-6panel-trucker\n– or a Surfcenter Sticker Set https://surf-center.com/nl/surfcenter-sticker-set-white-on-black\n\nJust let me know which one you'd like with your next order, and I'll take care of it 🤙🏻\n\nIs your order still relevant, but do you need a bit of help? Feel free to reply — I'm happy to help.\n\nBest regards,\nTeam Surfcenter" },
+    de: { subject: "{{voornaam}}, darf ich dich etwas fragen?", body: "Hi {{voornaam}},\n\nich habe gesehen, dass du deine Bestellung bei uns nicht abgeschlossen hast — kein Problem.\n\nMich würde interessieren, woran es gelegen hat. Könntest du mir das kurz mitteilen? So können wir daraus lernen — eine kurze Antwort reicht völlig 👍\n\nZum Beispiel:\n– Lieferzeit zu lang\n– Doch nicht mehr benötigt / anders entschieden\n– Falsches Produkt gewählt\n– Zahlung hat nicht funktioniert\n– Woanders bestellt\n– Sonstiges, nämlich: …\n\nDamit hilfst du uns sehr, uns zu verbessern.\n\nAls Dankeschön bekommst du bei deiner nächsten Bestellung:\n– eine Surfcenter Cap https://surf-center.com/nl/surfcenter-cap-2024-black-6panel-trucker\n– oder ein Surfcenter Sticker Set https://surf-center.com/nl/surfcenter-sticker-set-white-on-black\n\nSag einfach bei deiner nächsten Bestellung Bescheid, was du möchtest — ich kümmere mich darum 🤙🏻\n\nIst deine Bestellung noch relevant, aber brauchst du noch Hilfe? Melde dich einfach — ich helfe dir gerne weiter.\n\nViele Grüße,\nTeam Surfcenter" },
+    fr: { subject: "{{voornaam}}, puis-je vous poser une question ?", body: "Bonjour {{voornaam}},\n\nJ'ai remarqué que vous n'avez pas finalisé votre commande chez nous — aucun souci.\n\nJe serais curieux de savoir pourquoi. Pourriez-vous me le dire brièvement ? Cela nous aide à nous améliorer — une réponse rapide suffit 👍\n\nPar exemple :\n– Délai de livraison trop long\n– Finalement plus nécessaire / changement d'avis\n– Mauvais produit choisi\n– Paiement non abouti\n– Commandé ailleurs\n– Autre, à savoir : …\n\nCela nous aide vraiment à nous améliorer.\n\nEn remerciement, vous recevrez lors de votre prochaine commande :\n– une casquette Surfcenter https://surf-center.com/nl/surfcenter-cap-2024-black-6panel-trucker\n– ou un set d'autocollants Surfcenter https://surf-center.com/nl/surfcenter-sticker-set-white-on-black\n\nIndiquez simplement votre choix lors de votre prochaine commande et je m'en occupe 🤙🏻\n\nVotre commande est-elle toujours d'actualité, mais avez-vous besoin d'aide ? N'hésitez pas à répondre — je serai ravi de vous aider.\n\nCordialement,\nTeam Surfcenter" }
+  };
+  // MAIL_TPL_END
+
+  function buildMail(order, lang){
+    const l = (lang && MAIL_TPL[lang]) ? lang : detectLang(order.country);
+    const tpl = MAIL_TPL[l] || MAIL_TPL.en;
+    const name = firstName(order.customer);
+    const subject = tpl.subject.replace(/\{\{voornaam\}\}/g, name || 'hi');
+    const body    = tpl.body.replace(/\{\{voornaam\}\}/g, name || 'hi');
+    return { subject, body, lang: l };
+  }
+  // Apple Mail / default mail client via mailto:
+  function openAppleMail(order, lang){
+    const m = buildMail(order, lang);
+    const href = 'mailto:' + encodeURIComponent(order.email || '') +
+      '?subject=' + encodeURIComponent(m.subject) +
+      '&body=' + encodeURIComponent(m.body);
+    window.location.href = href;
+  }
+  // Gmail compose window (opens in new tab)
+  function openGmail(order, lang){
+    const m = buildMail(order, lang);
+    const href = 'https://mail.google.com/mail/?view=cm&fs=1' +
+      '&to=' + encodeURIComponent(order.email || '') +
+      '&su=' + encodeURIComponent(m.subject) +
+      '&body=' + encodeURIComponent(m.body);
+    window.open(href, '_blank', 'noopener');
+  }
+  // Show a small popover anchored under the clicked button, asking which language
+  // (NL / EN / DE / FR / Auto). Picking a language opens Apple Mail with that template.
+  let _pickPendingOrder = null;
+  function pickLang(order, anchorEl){
+    _pickPendingOrder = order;
+    const pop = document.getElementById('mailLangPop');
+    if (!pop) return;
+    // Position under the button
+    const r = anchorEl.getBoundingClientRect();
+    pop.hidden = false;
+    pop.style.visibility = 'hidden';
+    // Force layout to read its size
+    const pw = pop.offsetWidth, ph = pop.offsetHeight;
+    let left = window.scrollX + r.left;
+    let top  = window.scrollY + r.bottom + 6;
+    // Flip to the left if it would overflow viewport
+    if (left + pw > window.scrollX + window.innerWidth - 8) {
+      left = window.scrollX + r.right - pw;
+    }
+    // Flip above if it would overflow bottom
+    if (top + ph > window.scrollY + window.innerHeight - 8) {
+      top = window.scrollY + r.top - ph - 6;
+    }
+    pop.style.left = Math.max(8, left) + 'px';
+    pop.style.top  = Math.max(8, top)  + 'px';
+    pop.style.visibility = 'visible';
+  }
+  function hideLangPop(){
+    const pop = document.getElementById('mailLangPop');
+    if (pop) pop.hidden = true;
+    _pickPendingOrder = null;
+  }
+  // Expose to global so inline onclick handlers can call.
+  window.__mailActions = { openAppleMail, openGmail, pickLang, hideLangPop };
 
   // Aggregate orders matching a given year/offset.
   // Returns:
@@ -747,7 +939,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       if (!o._date) continue;
       if (!spec.matches(o, yearOrOffset)) continue;
       count += 1;
-      if (isComplete(o)) {
+      if (countsRevenue(o)) {
         gross += o.revenue;
         refund += o.refund;
         completedCount += 1;
@@ -836,7 +1028,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
     const y = currentYear();
     let rev = 0, ord = 0;
     for (const o of state.orders) {
-      if (!o._date || !isComplete(o)) continue;
+      if (!o._date || !countsRevenue(o)) continue;
       if (o._y !== y) continue;
       if (o._date > state.refDate) continue;
       rev += (o.revenue - o.refund);
@@ -895,7 +1087,8 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
 
     // Render revenue comparison (Result revenue = Completed gross - refunds)
     renderCompareRows('cmpRev', rows, 'result', v => fmtEurShort(v));
-    renderCompareRows('cmpOrd', rows, 'completedCount', v => fmtNum(v));
+    // Orders are whole-numbers; round the projected float so we don't see "123.456".
+    renderCompareRows('cmpOrd', rows, 'completedCount', v => fmtNum(Math.round(v)));
   }
 
   function renderCompareRows(elId, rows, key, fmt){
@@ -928,18 +1121,32 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       const rowCls = 'cmp-row' + (r.isCurrent ? ' current' : '') + (r.isPartial ? ' partial' : '');
       const actualPct = maxV > 0 ? (cur / maxV * 100) : 0;
       const expectedExtraPct = (r.expected !== null && r.expected > cur) ? ((r.expected - cur) / maxV * 100) : 0;
+      // Red "cancelled (lost)" indicator — only on the revenue table (key === 'result').
+      // Scaled to the same maxV so the bar visually compares to revenue, but it sits as a
+      // separate strip at the bottom of the cmp-bar — it does NOT extend the revenue bar.
+      const cancelledVal = (key === 'result') ? (r.agg.cancelledValue || 0) : 0;
+      const cancelledPct = (cancelledVal > 0 && maxV > 0) ? Math.min(100, (cancelledVal / maxV * 100)) : 0;
+      const cancelledOverlay = cancelledPct > 0
+        ? '<div class="cmp-cancelled" style="width:' + cancelledPct + '%;" title="' + fmtEur(cancelledVal) + ' lost to cancellations (not in revenue)"></div>'
+        : '';
       const barHtml = '<div class="cmp-bar">' +
           '<div class="cmp-fill" style="width:' + actualPct + '%;"></div>' +
           (expectedExtraPct > 0 ? '<div class="cmp-expected" style="width:' + expectedExtraPct + '%;" title="Expected at current pace"></div>' : '') +
+          cancelledOverlay +
         '</div>';
-      let valHtml;
+      // Build the inner pieces of the value column, then wrap once at the end so we can
+      // cleanly append the red "−€X lost" sub-line inside the cmp-value flex container.
+      let valInner;
       if (cur <= 0 && !r.isPartial) {
-        valHtml = '<span class="cmp-value"><span class="cmp-empty">—</span></span>';
+        valInner = '<span class="cmp-empty">—</span>';
       } else if (r.expected !== null) {
-        valHtml = '<span class="cmp-value"><span>' + fmt(cur) + '</span><span class="exp" title="Projected at current pace">' + fmt(r.expected) + '</span></span>';
+        valInner = '<span>' + fmt(cur) + '</span><span class="exp" title="Projected at current pace">' + fmt(r.expected) + '</span>';
       } else {
-        valHtml = '<span class="cmp-value"><span>' + fmt(cur) + '</span></span>';
+        valInner = '<span>' + fmt(cur) + '</span>';
       }
+      // Round 10: no more "−€X lost" text — cancelled value is shown purely via the orange
+      // bar at the bottom of cmp-bar (still scaled to revenue so you can eyeball the loss).
+      const valHtml = '<span class="cmp-value">' + valInner + '</span>';
       html.push(
         '<div class="' + rowCls + '">' +
           '<span class="cmp-year">' + r.label + (r.isPartial ? '*' : '') + '</span>' +
@@ -963,7 +1170,8 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
     const elapsed = currentElapsedRatio();
     const isPartial = spec.isPartial ? spec.isPartial(curKey) : false;
     const project = v => (isPartial && elapsed > 0 && elapsed < 1) ? (v / elapsed) : null;
-    const setMini = (id, valTxt, delta, expTxt, expDelta) => {
+    // invert=true ⇒ lower value is better (green). Used for refunds, cancelled, avg-lost.
+    const setMini = (id, valTxt, delta, expTxt, expDelta, invert) => {
       const valEl = document.getElementById(id);
       if (expTxt) {
         valEl.innerHTML = valTxt + ' <span class="mini-exp" title="Projected at current pace">' + expTxt + '</span>';
@@ -971,9 +1179,11 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
         valEl.textContent = valTxt;
       }
       const subEl = document.getElementById(id + 'Sub');
+      // Keep the numeric %/arrow from the real delta, but pick colour from (−delta) when invert.
+      const colourDelta = (invert && delta !== null) ? -delta : delta;
       const mainDeltaHtml = (delta === null)
         ? '<span class="delta neutral">—</span>'
-        : '<span class="delta ' + trendCls(delta) + '">' + trendIcon(delta) + ' ' + pct(delta, 0) + '</span>';
+        : '<span class="delta ' + trendCls(colourDelta) + '">' + trendIcon(colourDelta) + ' ' + pct(delta, 0) + '</span>';
       const expHtml = (expDelta !== null && expDelta !== undefined)
         ? '<div class="mini-exp-delta" title="Projected vs prior year">' + pct(expDelta, 0) + '</div>'
         : '';
@@ -986,8 +1196,10 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
     const expCan  = project(cur.cancelledCount);
     // For cancelled orders, negative YoY (fewer cancelled) is GOOD — we'll still report raw delta but keep consistent formatting.
     setMini('kpiNet', fmtEur(cur.result),         dh(cur.result, prev.result),           expRes !== null ? fmtEur(expRes) : null,                       expRes !== null ? dh(expRes, prev.result) : null);
+    // Round 10: removed red "−€X lost" sub-line. Cancelled info now lives in the dedicated
+    // Avg. lost order tile + the Cancelled tile + the orange bar on year-compare rows.
     setMini('kpiOrd', fmtNum(cur.completedCount), dh(cur.completedCount, prev.completedCount), expOrd !== null ? fmtNum(Math.floor(expOrd)) : null,      expOrd !== null ? dh(expOrd, prev.completedCount) : null);
-    setMini('kpiRef', fmtEur(cur.refund),         dh(cur.refund, prev.refund),           expRef !== null ? fmtEur(expRef) : null,                       expRef !== null ? dh(expRef, prev.refund) : null);
+    // Round 11: Refunds top-row tile removed (it's also shown further down in the refunds card).
     // Cancelled: show count as main value, with lost value as secondary hint (below delta row would be ideal but we'll embed in sub)
     const canValEl = document.getElementById('kpiCan');
     if (canValEl) {
@@ -996,13 +1208,20 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
     const canSub = document.getElementById('kpiCanSub');
     if (canSub) {
       const d = dh(cur.cancelledCount, prev.cancelledCount);
+      // Cancelled: fewer = better → colour inverted (▼ fewer cancelled is green, ▲ more is red).
+      const colourD = (d === null) ? null : -d;
       const mainH = (d === null)
         ? '<span class="delta neutral">—</span>'
-        : '<span class="delta ' + (d >= 0 ? 'up' : 'down') + '">' + (d >= 0 ? '▲' : '▼') + ' ' + pct(d, 0) + '</span>';
+        : '<span class="delta ' + trendCls(colourD) + '">' + trendIcon(colourD) + ' ' + pct(d, 0) + '</span>';
       const expH = (expCan !== null) ? '<div class="mini-exp-delta" title="Projected at current pace">' + fmtNum(Math.floor(expCan)) + ' expected</div>' : '';
       canSub.innerHTML = mainH + ' vs prior year' + expH;
     }
     setMini('kpiAov', fmtEur(cur.aov),            dh(cur.aov, prev.aov),                 null, null);
+    // Round 10: Avg. lost order = cancelledValue / cancelledCount. A rising avg lost-order
+    // means cancellations are hitting your higher-ticket orders → bad. Colour inverted.
+    const curAvgLost  = cur.cancelledCount  > 0 ? (cur.cancelledValue  / cur.cancelledCount)  : 0;
+    const prevAvgLost = prev.cancelledCount > 0 ? (prev.cancelledValue / prev.cancelledCount) : 0;
+    setMini('kpiAvgLost', fmtEur(curAvgLost), dh(curAvgLost, prevAvgLost), null, null, true);
   }
 
   // ============ BAR CHART: current vs prior year per period within selected grain ============
@@ -1014,7 +1233,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       const years = getYearsWithData().sort((a,b)=>a-b).slice(-7);
       const perRev = years.map(() => 0);
       for (const o of state.orders) {
-        if (!o._date || !isComplete(o)) continue;
+        if (!o._date || !countsRevenue(o)) continue;
         const idx = years.indexOf(o._y);
         if (idx >= 0) perRev[idx] += (o.revenue - o.refund);
       }
@@ -1024,7 +1243,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       labels = ['Q1','Q2','Q3','Q4'];
       const c = [0,0,0,0], p = [0,0,0,0];
       for (const o of state.orders) {
-        if (!o._date || !isComplete(o)) continue;
+        if (!o._date || !countsRevenue(o)) continue;
         if (o._y === curY) c[o._q - 1] += (o.revenue - o.refund);
         else if (o._y === curY - 1) p[o._q - 1] += (o.revenue - o.refund);
       }
@@ -1035,7 +1254,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       labels = MONTH_NAMES.slice();
       const c = new Array(12).fill(0), p = new Array(12).fill(0);
       for (const o of state.orders) {
-        if (!o._date || !isComplete(o)) continue;
+        if (!o._date || !countsRevenue(o)) continue;
         if (o._y === curY) c[o._m - 1] += (o.revenue - o.refund);
         else if (o._y === curY - 1) p[o._m - 1] += (o.revenue - o.refund);
       }
@@ -1049,7 +1268,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       labels = weeks.map(w => 'W' + w);
       const c = weeks.map(() => 0), p = weeks.map(() => 0);
       for (const o of state.orders) {
-        if (!o._date || !isComplete(o) || !o._w) continue;
+        if (!o._date || !countsRevenue(o) || !o._w) continue;
         const idx = weeks.indexOf(o._w);
         if (idx < 0) continue;
         if (o._wy === curY) c[idx] += (o.revenue - o.refund);
@@ -1063,7 +1282,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       labels = days.map(d => MONTH_NAMES[d.getMonth()] + ' ' + d.getDate());
       const c = days.map(() => 0), p = days.map(() => 0);
       for (const o of state.orders) {
-        if (!o._date || !isComplete(o)) continue;
+        if (!o._date || !countsRevenue(o)) continue;
         for (let i = 0; i < days.length; i++) {
           const dy = days[i];
           if (o._date.getFullYear() === dy.getFullYear() && o._date.getMonth() === dy.getMonth() && o._date.getDate() === dy.getDate()) { c[i] += (o.revenue - o.refund); break; }
@@ -1108,7 +1327,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
     years.forEach((y, i) => {
       const data = new Array(12).fill(0);
       for (const o of state.orders) {
-        if (!o._date || !isComplete(o)) continue;
+        if (!o._date || !countsRevenue(o)) continue;
         if (o._y !== y) continue;
         data[o._m - 1] += (o.revenue - o.refund);
       }
@@ -1178,7 +1397,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       const rows = years.map(y => {
         const cells = new Array(12).fill(0);
         for (const o of state.orders) {
-          if (!o._date || !isComplete(o) || o._y !== y) continue;
+          if (!o._date || !countsRevenue(o) || o._y !== y) continue;
           cells[o._m-1] += (o.revenue - o.refund);
         }
         return { label: y.toString(), cells, total: cells.reduce((a,b)=>a+b,0), isCurrent: y === currentYear() };
@@ -1190,7 +1409,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       const rows = years.map(y => {
         const cells = new Array(4).fill(0);
         for (const o of state.orders) {
-          if (!o._date || !isComplete(o) || o._y !== y) continue;
+          if (!o._date || !countsRevenue(o) || o._y !== y) continue;
           cells[o._q-1] += (o.revenue - o.refund);
         }
         return { label: y.toString(), cells, total: cells.reduce((a,b)=>a+b,0), isCurrent: y === currentYear() };
@@ -1207,7 +1426,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       const rows = years.map(y => {
         const cells = weeks.map(() => 0);
         for (const o of state.orders) {
-          if (!o._date || !isComplete(o) || o._wy !== y || !o._w) continue;
+          if (!o._date || !countsRevenue(o) || o._wy !== y || !o._w) continue;
           const idx = weeks.indexOf(o._w);
           if (idx >= 0) cells[idx] += (o.revenue - o.refund);
         }
@@ -1227,7 +1446,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       const rows = years.map(y => {
         const cells = days.map(() => 0);
         for (const o of state.orders) {
-          if (!o._date || !isComplete(o) || o._y !== y) continue;
+          if (!o._date || !countsRevenue(o) || o._y !== y) continue;
           for (let i = 0; i < days.length; i++) {
             if (o._date.getMonth() === days[i].m && o._date.getDate() === days[i].dom) { cells[i] += (o.revenue - o.refund); break; }
           }
@@ -1242,7 +1461,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       const headers = ys.map(y => ({ key: y, label: y.toString() }));
       const per = ys.map(() => ({ gross: 0, refund: 0, count: 0, custs: new Set() }));
       for (const o of state.orders) {
-        if (!o._date || !isComplete(o)) continue;
+        if (!o._date || !countsRevenue(o)) continue;
         const idx = ys.indexOf(o._y);
         if (idx < 0) continue;
         per[idx].gross += o.revenue;
@@ -1318,7 +1537,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
     const buckets = Array.from({length: 7}, () => ({ net: 0, cnt: 0 }));
     const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
     for (const o of state.orders) {
-      if (!o._date || !isComplete(o)) continue;
+      if (!o._date || !countsRevenue(o)) continue;
       if (!spec.matches(o, curKey)) continue;
       const dow = o._date.getDay(); // 0-6 (Sun-Sat)
       buckets[dow].net += (o.revenue - o.refund);
@@ -1356,7 +1575,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
     const repeatRate = (() => {
       const custCounts = new Map();
       for (const o of state.orders) {
-        if (!o._date || !isComplete(o) || !spec.matches(o, curKey)) continue;
+        if (!o._date || !countsRevenue(o) || !spec.matches(o, curKey)) continue;
         const k = (o.customer || '').trim().toLowerCase();
         if (!k) continue;
         custCounts.set(k, (custCounts.get(k) || 0) + 1);
@@ -1368,7 +1587,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
     const bestDay = (() => {
       const map = new Map();
       for (const o of state.orders) {
-        if (!o._date || !isComplete(o) || !spec.matches(o, curKey)) continue;
+        if (!o._date || !countsRevenue(o) || !spec.matches(o, curKey)) continue;
         const k = ymd(o._date);
         map.set(k, (map.get(k) || 0) + (o.revenue - o.refund));
       }
@@ -1408,7 +1627,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
     const prevMap = new Map();
     let curTotal = 0;
     for (const o of state.orders) {
-      if (!o._date || !isComplete(o)) continue;
+      if (!o._date || !countsRevenue(o)) continue;
       const c = o.country || 'Unknown';
       if (spec.matches(o, curKey)) { curMap.set(c, (curMap.get(c) || 0) + (o.revenue - o.refund)); curTotal += (o.revenue - o.refund); }
       if (spec.matches(o, prevKey)) prevMap.set(c, (prevMap.get(c) || 0) + (o.revenue - o.refund));
@@ -1434,35 +1653,70 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
   function renderCustomers(){
     const spec = periodSpec();
     const curKey = spec.useOffset ? 0 : currentYear();
+    // First: count ALL-TIME orders + revenue per customer (across full dataset, all periods).
+    const allTime = new Map();
+    for (const o of state.orders) {
+      if (!o._date || !countsRevenue(o)) continue;
+      const k = (o.customer || 'Unknown').trim().toLowerCase();
+      const row = allTime.get(k) || { allCount: 0, allNet: 0 };
+      row.allCount += 1;
+      row.allNet += (o.revenue - o.refund);
+      allTime.set(k, row);
+    }
+    // Then: aggregate for the selected period (drives the ranking).
     const map = new Map();
     for (const o of state.orders) {
-      if (!o._date || !isComplete(o)) continue;
+      if (!o._date || !countsRevenue(o)) continue;
       if (!spec.matches(o, curKey)) continue;
       const k = (o.customer || 'Unknown').trim().toLowerCase();
-      const row = map.get(k) || { name: o.customer || 'Unknown', count: 0, net: 0, _cc: {} };
+      const row = map.get(k) || { name: o.customer || 'Unknown', count: 0, net: 0 };
       row.count += 1;
       row.net += (o.revenue - o.refund);
-      row._cc[o.country] = (row._cc[o.country] || 0) + 1;
       map.set(k, row);
     }
-    // pick most-common country
-    for (const r of map.values()) {
-      let best = null, bv = 0;
-      for (const [c, n] of Object.entries(r._cc)) { if (n > bv) { bv = n; best = c; } }
-      r.country = best || '—';
-      delete r._cc;
+    // Attach all-time totals
+    for (const [k, r] of map.entries()) {
+      const at = allTime.get(k);
+      r.allCount = at ? at.allCount : r.count;
+      r.allNet   = at ? at.allNet   : r.net;
     }
-    const rows = Array.from(map.values()).sort((a, b) => b.net - a.net).slice(0, 25);
+    const allRows = Array.from(map.values());
+    allRows.sort(customersCompareFn(state.customersSort.col, state.customersSort.dir));
+    const rows = allRows.slice(0, 25);
+    // Update header sort indicators
+    document.querySelectorAll('#custTable th[data-csort]').forEach(th => {
+      th.classList.remove('sort-asc','sort-desc');
+      if (th.dataset.csort === state.customersSort.col) {
+        th.classList.add(state.customersSort.dir === 'asc' ? 'sort-asc' : 'sort-desc');
+      }
+    });
     if (rows.length === 0) { document.getElementById('custBody').innerHTML = '<tr><td colspan="5" class="empty">No data for this period</td></tr>'; return; }
     document.getElementById('custBody').innerHTML = rows.map((r, i) =>
       '<tr>' +
         '<td class="rank">' + (i+1) + '</td>' +
         '<td>' + escHtml(r.name) + '</td>' +
-        '<td>' + escHtml(r.country) + '</td>' +
         '<td class="num">' + fmtNum(r.count) + '</td>' +
         '<td class="num"><b>' + fmtEurShort(r.net) + '</b></td>' +
+        '<td class="num"><span title="Total orders this customer placed across all time">' + fmtNum(r.allCount) + '</span> <span class="dim" style="font-size:10.5px;margin-left:4px;">(' + fmtEurShort(r.allNet) + ')</span></td>' +
       '</tr>'
     ).join('');
+  }
+
+  // Comparator for the top-customers table — keys: name | count | net | allCount | allNet
+  function customersCompareFn(col, dir){
+    const mult = dir === 'asc' ? 1 : -1;
+    return (a, b) => {
+      let av, bv;
+      if (col === 'name')      { av = (a.name||'').toLowerCase(); bv = (b.name||'').toLowerCase(); }
+      else if (col === 'count')    { av = a.count;    bv = b.count;    }
+      else if (col === 'net')      { av = a.net;      bv = b.net;      }
+      else if (col === 'allCount') { av = a.allCount; bv = b.allCount; }
+      else if (col === 'allNet')   { av = a.allNet;   bv = b.allNet;   }
+      else                         { av = a.net;      bv = b.net;      }
+      if (av < bv) return -1 * mult;
+      if (av > bv) return  1 * mult;
+      return 0;
+    };
   }
 
   // ============ RECENT ORDERS TABLE ============
@@ -1530,12 +1784,23 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       else if (col === 'status')   { av = (a.status||'').toLowerCase();   bv = (b.status||'').toLowerCase(); }
       else if (col === 'gross')    { av = a.revenue; bv = b.revenue; }
       else if (col === 'refund')   { av = a.refund;  bv = b.refund;  }
-      else if (col === 'net')      { av = (isComplete(a) ? (a.revenue - a.refund) : 0); bv = (isComplete(b) ? (b.revenue - b.refund) : 0); }
+      else if (col === 'net')      { av = (countsRevenue(a) ? (a.revenue - a.refund) : 0); bv = (countsRevenue(b) ? (b.revenue - b.refund) : 0); }
       else                         { av = 0; bv = 0; }
       if (av < bv) return -1 * mult;
       if (av > bv) return  1 * mult;
       return 0;
     };
+  }
+
+  function matchesOrderQuery(o, q){
+    if (!q) return true;
+    const needle = q.toLowerCase().trim();
+    if (!needle) return true;
+    const hay = [
+      (o.id||'').toString(), (o.customer||''), (o.email||''),
+      (o.status||''), (o.date||''), (o.country||''), (o.payment||'')
+    ].join(' ').toLowerCase();
+    return hay.indexOf(needle) !== -1;
   }
 
   function renderOrders(limit=25){
@@ -1546,6 +1811,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       if (!o._date) continue;
       if (!spec.matches(o, curKey)) continue;
       if (!orderMatchesFilter(o, state.ordersFilter)) continue;
+      if (!matchesOrderQuery(o, state.ordersQuery)) continue;
       rows.push(o);
     }
     rows.sort(compareFn(state.ordersSort.col, state.ordersSort.dir));
@@ -1564,15 +1830,28 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
     });
     const body = document.getElementById('ordersBody');
     if (!body) return;
-    if (!rows.length) { body.innerHTML = '<tr><td colspan="7" class="empty">No orders match this filter</td></tr>'; return; }
+    if (!rows.length) { body.innerHTML = '<tr><td colspan="8" class="empty">No orders match this filter</td></tr>'; return; }
     const slice = rows.slice(0, limit);
-    body.innerHTML = slice.map(o => {
-      const cls = isCancelled(o) ? 'row-cancelled' : (isComplete(o) ? '' : 'row-other');
-      const statusCls = isCancelled(o) ? 'status-badge status-cancelled' : (isComplete(o) ? 'status-badge status-complete' : 'status-badge status-other');
+    // Expose the visible slice for inline mail-button onclick handlers
+    window.__ordersRows = slice;
+    body.innerHTML = slice.map((o, idx) => {
+      const cls = isCancelled(o) ? 'row-cancelled' : (countsRevenue(o) ? '' : 'row-other');
+      const statusCls = isCancelled(o) ? 'status-badge status-cancelled' : isComplete(o) ? 'status-badge status-complete' : isProcessing(o) ? 'status-badge status-processing' : 'status-badge status-other';
       const gross = o.revenue;
       const refund = o.refund;
-      const net = isComplete(o) ? (gross - refund) : 0;
+      const net = countsRevenue(o) ? (gross - refund) : 0;
       const timeHtml = o.time ? '<span class="dim" style="margin-left:6px;font-size:10.5px;">' + escHtml(o.time) + '</span>' : '';
+      // Mail button: only meaningful for cancelled orders that have an email.
+      // One Apple-mail button — clicking it opens a popover that asks NL/EN/DE/FR.
+      let mailCell = '<span class="dim">—</span>';
+      if (isCancelled(o) && o.email) {
+        const detected = detectLang(o.country);
+        const oref = '__ordersRows[' + idx + ']';
+        mailCell =
+          '<button class="mail-btn mail-btn--apple mail-btn--sm" data-mail-pick title="Send follow-up mail (auto: ' + detected.toUpperCase() + ') — choose language" onclick="__mailActions.pickLang(' + oref + ', this)">✉ Mail</button>';
+      } else if (isCancelled(o) && !o.email) {
+        mailCell = '<span class="dim" title="No email on file">—</span>';
+      }
       return '<tr class="' + cls + '">' +
         '<td class="mono">' + escHtml(o.date) + timeHtml + '</td>' +
         '<td class="mono">' + escHtml(o.id || '—') + '</td>' +
@@ -1580,7 +1859,8 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
         '<td><span class="' + statusCls + '">' + escHtml(o.status || 'Unknown') + '</span></td>' +
         '<td class="num">' + fmtEur(gross) + '</td>' +
         '<td class="num">' + (refund > 0 ? fmtEur(refund) : '<span class="dim">—</span>') + '</td>' +
-        '<td class="num"><b>' + (isComplete(o) ? fmtEur(net) : '<span class="dim">—</span>') + '</b></td>' +
+        '<td class="num"><b>' + (countsRevenue(o) ? fmtEur(net) : '<span class="dim">—</span>') + '</b></td>' +
+        '<td class="mail-cell">' + mailCell + '</td>' +
       '</tr>';
     }).join('');
   }
@@ -1593,7 +1873,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
     let totalGross = 0, totalRefund = 0, refundedCount = 0, completedCount = 0;
     const refunded = [];
     for (const o of state.orders) {
-      if (!o._date || !spec.matches(o, curKey) || !isComplete(o)) continue;
+      if (!o._date || !spec.matches(o, curKey) || !countsRevenue(o)) continue;
       completedCount += 1;
       totalGross += o.revenue;
       if (o.refund > 0) {
@@ -1605,7 +1885,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
     // Prior-period refund total for YoY
     let prevRefund = 0;
     for (const o of state.orders) {
-      if (!o._date || !spec.matches(o, prevKey) || !isComplete(o)) continue;
+      if (!o._date || !spec.matches(o, prevKey) || !countsRevenue(o)) continue;
       prevRefund += o.refund;
     }
     const refundRatePct = totalGross > 0 ? (totalRefund / totalGross * 100) : 0;
@@ -1626,8 +1906,15 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
 
     const body = document.getElementById('refundsBody');
     if (!body) return;
+    // Update header sort indicators
+    document.querySelectorAll('#refundsTable th[data-rsort]').forEach(th => {
+      th.classList.remove('sort-asc','sort-desc');
+      if (th.dataset.rsort === state.refundsSort.col) {
+        th.classList.add(state.refundsSort.dir === 'asc' ? 'sort-asc' : 'sort-desc');
+      }
+    });
     if (!refunded.length) { body.innerHTML = '<tr><td colspan="6" class="empty">No refunds in this period</td></tr>'; return; }
-    refunded.sort((a, b) => b.refund - a.refund);
+    refunded.sort(refundsCompareFn(state.refundsSort.col, state.refundsSort.dir));
     body.innerHTML = refunded.slice(0, limit).map(o => {
       const gross = o.revenue, refund = o.refund;
       const sharePct = gross > 0 ? (refund / gross * 100) : 0;
@@ -1641,6 +1928,32 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
         '<td class="num">' + (isFull ? '<span class="status-badge status-cancelled">100%</span>' : sharePct.toFixed(0) + '%') + '</td>' +
       '</tr>';
     }).join('');
+  }
+
+  // Comparator for the refunds table — keys: date | id | customer | gross | refund | share | net
+  function refundsCompareFn(col, dir){
+    const mult = dir === 'asc' ? 1 : -1;
+    return (a, b) => {
+      let av, bv;
+      if (col === 'date')          { av = a._date ? a._date.getTime() : 0; bv = b._date ? b._date.getTime() : 0; }
+      else if (col === 'id')       {
+        const na = parseInt(String(a.id || '').replace(/\D+/g, ''), 10);
+        const nb = parseInt(String(b.id || '').replace(/\D+/g, ''), 10);
+        if (isFinite(na) && isFinite(nb)) { av = na; bv = nb; } else { av = (a.id||'').toString(); bv = (b.id||'').toString(); }
+      }
+      else if (col === 'customer') { av = (a.customer||'').toLowerCase(); bv = (b.customer||'').toLowerCase(); }
+      else if (col === 'gross')    { av = a.revenue; bv = b.revenue; }
+      else if (col === 'refund')   { av = a.refund;  bv = b.refund;  }
+      else if (col === 'net')      { av = (a.revenue - a.refund); bv = (b.revenue - b.refund); }
+      else if (col === 'share')    {
+        av = a.revenue > 0 ? (a.refund / a.revenue) : 0;
+        bv = b.revenue > 0 ? (b.refund / b.revenue) : 0;
+      }
+      else                         { av = a.refund; bv = b.refund; }
+      if (av < bv) return -1 * mult;
+      if (av > bv) return  1 * mult;
+      return 0;
+    };
   }
 
   // Donut palette — keep Complete green-ish leaning and Cancelled red-ish so it reads instantly.
@@ -1717,7 +2030,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
     const map = new Map();
     let total = 0;
     for (const o of state.orders) {
-      if (!o._date || !isComplete(o)) continue;
+      if (!o._date || !countsRevenue(o)) continue;
       if (!spec.matches(o, curKey)) continue;
       const net = o.revenue - o.refund;
       map.set(o.payment, (map.get(o.payment) || 0) + net);
@@ -1757,7 +2070,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
         let curN = 0, curC = 0, prevN = 0, prevC = 0;
         const py = d.getFullYear() - 1;
         for (const o of state.orders) {
-          if (!o._date || !isComplete(o)) continue;
+          if (!o._date || !countsRevenue(o)) continue;
           if (o._date.getFullYear() === d.getFullYear() && o._date.getMonth() === d.getMonth() && o._date.getDate() === d.getDate()) {
             curN += (o.revenue - o.refund); curC += 1;
           } else if (o._date.getFullYear() === py && o._date.getMonth() === d.getMonth() && o._date.getDate() === d.getDate()) {
@@ -1776,7 +2089,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       const curDays = Array.from({length: daysToShow}, () => ({ net: 0, cnt: 0 }));
       const prevDays = Array.from({length: daysToShow}, () => ({ net: 0, cnt: 0 }));
       for (const o of state.orders) {
-        if (!o._date || !isComplete(o) || !o._doy) continue;
+        if (!o._date || !countsRevenue(o) || !o._doy) continue;
         const idx = o._doy - 1;
         if (idx < 0 || idx >= daysToShow) continue;
         if (o._y === curY)      { curDays[idx].net += (o.revenue - o.refund);  curDays[idx].cnt += 1; }
@@ -1805,7 +2118,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       const curMonths = Array.from({length: 12}, () => ({ net: 0, cnt: 0 }));
       const prevMonths = Array.from({length: 12}, () => ({ net: 0, cnt: 0 }));
       for (const o of state.orders) {
-        if (!o._date || !isComplete(o)) continue;
+        if (!o._date || !countsRevenue(o)) continue;
         if (o._y === curY)      { curMonths[o._m-1].net += (o.revenue - o.refund); curMonths[o._m-1].cnt += 1; }
         else if (o._y === curY-1) { prevMonths[o._m-1].net += (o.revenue - o.refund); prevMonths[o._m-1].cnt += 1; }
       }
@@ -1820,7 +2133,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       const curQ = Array.from({length: 4}, () => ({ net: 0, cnt: 0 }));
       const prevQ = Array.from({length: 4}, () => ({ net: 0, cnt: 0 }));
       for (const o of state.orders) {
-        if (!o._date || !isComplete(o)) continue;
+        if (!o._date || !countsRevenue(o)) continue;
         if (o._y === curY)      { curQ[o._q-1].net += (o.revenue - o.refund); curQ[o._q-1].cnt += 1; }
         else if (o._y === curY-1) { prevQ[o._q-1].net += (o.revenue - o.refund); prevQ[o._q-1].cnt += 1; }
       }
@@ -1837,7 +2150,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       const years = getYearsWithData().slice(0, 5).sort((a,b) => a-b);
       const buckets = years.map(() => ({ net: 0, cnt: 0 }));
       for (const o of state.orders) {
-        if (!o._date || !isComplete(o)) continue;
+        if (!o._date || !countsRevenue(o)) continue;
         const i = years.indexOf(o._y);
         if (i >= 0) { buckets[i].net += (o.revenue - o.refund); buckets[i].cnt += 1; }
       }
@@ -1926,7 +2239,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       years.forEach((y, i) => {
         const data = new Array(12).fill(0);
         for (const o of state.orders) {
-          if (!o._date || !isComplete(o)) continue;
+          if (!o._date || !countsRevenue(o)) continue;
           if (o._y !== y) continue;
           data[o._m - 1] += (o.revenue - o.refund);
         }
@@ -1958,7 +2271,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       const curMap = new Map(), prevMap = new Map();
       let curTotal = 0, curCount = 0;
       for (const o of state.orders) {
-        if (!o._date || !isComplete(o)) continue;
+        if (!o._date || !countsRevenue(o)) continue;
         const c = o.country || 'Unknown';
         if (spec.matches(o, curKey))  { const net = o.revenue - o.refund; const row = curMap.get(c) || { net: 0, cnt: 0 }; row.net += net; row.cnt += 1; curMap.set(c, row); curTotal += net; curCount += 1; }
         if (spec.matches(o, prevKey)) prevMap.set(c, (prevMap.get(c) || 0) + (o.revenue - o.refund));
@@ -1981,37 +2294,66 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       title.textContent = 'Top customers';
       sub.textContent = 'Full list · ' + spec.label;
       const curKey = spec.useOffset ? 0 : currentYear();
+      // All-time aggregates
+      const allTime = new Map();
+      for (const o of state.orders) {
+        if (!o._date || !countsRevenue(o)) continue;
+        const k = (o.customer || 'Unknown').trim().toLowerCase();
+        const row = allTime.get(k) || { allCount: 0, allNet: 0 };
+        row.allCount += 1;
+        row.allNet += (o.revenue - o.refund);
+        allTime.set(k, row);
+      }
+      // Period aggregates
       const map = new Map();
       for (const o of state.orders) {
-        if (!o._date || !isComplete(o)) continue;
+        if (!o._date || !countsRevenue(o)) continue;
         if (!spec.matches(o, curKey)) continue;
         const k = (o.customer || 'Unknown').trim().toLowerCase();
-        const row = map.get(k) || { name: o.customer || 'Unknown', count: 0, net: 0, _cc: {} };
+        const row = map.get(k) || { name: o.customer || 'Unknown', count: 0, net: 0 };
         row.count += 1; row.net += (o.revenue - o.refund);
-        row._cc[o.country] = (row._cc[o.country] || 0) + 1;
         map.set(k, row);
       }
-      for (const r of map.values()) {
-        let best = null, bv = 0;
-        for (const [c, n] of Object.entries(r._cc)) { if (n > bv) { bv = n; best = c; } }
-        r.country = best || '—';
-        delete r._cc;
+      for (const [k, r] of map.entries()) {
+        const at = allTime.get(k);
+        r.allCount = at ? at.allCount : r.count;
+        r.allNet   = at ? at.allNet   : r.net;
       }
-      const rows = Array.from(map.values()).sort((a, b) => b.net - a.net);
+      const rows = Array.from(map.values());
+      rows.sort(customersCompareFn(state.customersSort.col, state.customersSort.dir));
       if (!rows.length) { body.innerHTML = '<div class="empty">No data for this period</div>'; }
       else {
-        const html = ['<table class="table"><thead><tr><th class="rank">#</th><th>Customer</th><th>Country</th><th class="num">Orders</th><th class="num">Revenue</th><th class="num">AOV</th></tr></thead><tbody>'];
+        const ind = col => state.customersSort.col === col ? ' <span style="opacity:.7;">' + (state.customersSort.dir === 'asc' ? '▲' : '▼') + '</span>' : '';
+        const html = ['<div class="table-wrap"><table class="table table-sortable" id="modalCustTable"><thead><tr>' +
+          '<th class="rank">#</th>' +
+          '<th data-cmsort="name" class="sortable">Customer' + ind('name') + '</th>' +
+          '<th data-cmsort="count" class="sortable num">Orders' + ind('count') + '</th>' +
+          '<th data-cmsort="net" class="sortable num">Revenue' + ind('net') + '</th>' +
+          '<th class="num">AOV</th>' +
+          '<th data-cmsort="allCount" class="sortable num" title="All-time orders">All-time orders' + ind('allCount') + '</th>' +
+          '<th data-cmsort="allNet" class="sortable num" title="All-time revenue">All-time revenue' + ind('allNet') + '</th>' +
+          '</tr></thead><tbody>'];
         rows.forEach((r, i) => {
-          html.push('<tr><td class="rank">' + (i+1) + '</td><td>' + escHtml(r.name) + '</td><td>' + escHtml(r.country) + '</td><td class="num">' + fmtNum(r.count) + '</td><td class="num"><b>' + fmtEur(r.net) + '</b></td><td class="num">' + fmtEur(r.count > 0 ? r.net / r.count : 0) + '</td></tr>');
+          html.push('<tr><td class="rank">' + (i+1) + '</td><td>' + escHtml(r.name) + '</td><td class="num">' + fmtNum(r.count) + '</td><td class="num"><b>' + fmtEur(r.net) + '</b></td><td class="num">' + fmtEur(r.count > 0 ? r.net / r.count : 0) + '</td><td class="num">' + fmtNum(r.allCount) + '</td><td class="num">' + fmtEur(r.allNet) + '</td></tr>');
         });
-        html.push('</tbody></table>');
+        html.push('</tbody></table></div>');
         body.innerHTML = html.join('');
+        // Wire column sort inside customers modal — re-renders in place
+        body.querySelectorAll('th[data-cmsort]').forEach(th => {
+          th.addEventListener('click', () => {
+            const col = th.dataset.cmsort;
+            if (state.customersSort.col === col) state.customersSort.dir = state.customersSort.dir === 'asc' ? 'desc' : 'asc';
+            else { state.customersSort.col = col; state.customersSort.dir = (col === 'name') ? 'asc' : 'desc'; }
+            renderCustomers();
+            openModal('customers');
+          });
+        });
       }
     }
     else if (type === 'status') {
       title.textContent = 'Order status';
       sub.textContent = 'Full breakdown · ' + spec.label;
-      body.innerHTML = '<div class="donut-wrap" style="grid-template-columns:260px 1fr;gap:30px;min-height:280px;"><canvas id="modalStatusChart"></canvas><div class="donut-legend" id="modalStatusLegend" style="font-size:14px;"></div></div>';
+      body.innerHTML = '<div class="donut-wrap" style="grid-template-columns:300px 1fr;gap:40px;min-height:320px;"><div class="donut-canvas-box" style="width:300px;height:300px;"><canvas id="modalStatusChart" style="width:300px!important;height:300px!important;"></canvas></div><div class="donut-legend" id="modalStatusLegend" style="font-size:14px;"></div></div>';
       // Reuse renderStatus but against modal canvas
       renderStatus('modalStatusChart', 'modalStatusLegend', 'modalChart');
     }
@@ -2044,6 +2386,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
         if (!o._date) continue;
         if (!spec.matches(o, curKey)) continue;
         if (!orderMatchesFilter(o, state.ordersFilter)) continue;
+        if (!matchesOrderQuery(o, state.ordersQuery)) continue;
         rows.push(o);
       }
       rows.sort(compareFn(state.ordersSort.col, state.ordersSort.dir));
@@ -2059,14 +2402,26 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
           '<th data-msort="gross" class="sortable num">Gross' + sortIndicator('gross') + '</th>' +
           '<th data-msort="refund" class="sortable num">Refund' + sortIndicator('refund') + '</th>' +
           '<th data-msort="net" class="sortable num">Net' + sortIndicator('net') + '</th>' +
+          '<th title="Send follow-up mail (cancelled orders)">Mail</th>' +
           '</tr></thead><tbody>'];
-        rows.forEach(o => {
-          const cls = isCancelled(o) ? 'row-cancelled' : (isComplete(o) ? '' : 'row-other');
-          const statusCls = isCancelled(o) ? 'status-badge status-cancelled' : (isComplete(o) ? 'status-badge status-complete' : 'status-badge status-other');
+        // Expose for inline mail-button onclick handlers
+        window.__ordersModalRows = rows;
+        rows.forEach((o, idx) => {
+          const cls = isCancelled(o) ? 'row-cancelled' : (countsRevenue(o) ? '' : 'row-other');
+          const statusCls = isCancelled(o) ? 'status-badge status-cancelled' : isComplete(o) ? 'status-badge status-complete' : isProcessing(o) ? 'status-badge status-processing' : 'status-badge status-other';
           const gross = o.revenue;
           const refund = o.refund;
-          const net = isComplete(o) ? (gross - refund) : 0;
+          const net = countsRevenue(o) ? (gross - refund) : 0;
           const timeHtml = o.time ? '<span class="dim" style="margin-left:6px;font-size:11px;">' + escHtml(o.time) + '</span>' : '';
+          let mailCell = '<span class="dim">—</span>';
+          if (isCancelled(o) && o.email) {
+            const detected = detectLang(o.country);
+            const oref = '__ordersModalRows[' + idx + ']';
+            mailCell =
+              '<button class="mail-btn mail-btn--apple mail-btn--sm" data-mail-pick title="Send follow-up mail (auto: ' + detected.toUpperCase() + ') — choose language" onclick="__mailActions.pickLang(' + oref + ', this)">✉ Mail</button>';
+          } else if (isCancelled(o) && !o.email) {
+            mailCell = '<span class="dim" title="No email on file">—</span>';
+          }
           html.push('<tr class="' + cls + '">' +
             '<td class="mono">' + escHtml(o.date) + timeHtml + '</td>' +
             '<td class="mono">' + escHtml(o.id || '—') + '</td>' +
@@ -2075,7 +2430,8 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
             '<td>' + escHtml(o.payment || '—') + '</td>' +
             '<td class="num">' + fmtEur(gross) + '</td>' +
             '<td class="num">' + (refund > 0 ? fmtEur(refund) : '<span class="dim">—</span>') + '</td>' +
-            '<td class="num"><b>' + (isComplete(o) ? fmtEur(net) : '<span class="dim">—</span>') + '</b></td>' +
+            '<td class="num"><b>' + (countsRevenue(o) ? fmtEur(net) : '<span class="dim">—</span>') + '</b></td>' +
+            '<td class="mail-cell">' + mailCell + '</td>' +
           '</tr>');
         });
         html.push('</tbody></table></div>');
@@ -2123,23 +2479,37 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       '</div>';
       if (!rows.length) { body.innerHTML = summaryHtml + '<div class="empty">No cancelled orders in this period</div>'; }
       else {
-        const html = [summaryHtml, '<div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Order ID</th><th>Customer</th><th>Email</th><th>Status</th><th class="num">Lost revenue</th></tr></thead><tbody>'];
-        rows.forEach(o => {
+        const legendHtml = '<div class="mail-legend" style="font-size:11px;color:var(--muted);margin-bottom:10px;">' +
+          'Click <b>✉ Mail</b> to send a follow-up. A small popup will ask you which language (NL / EN / DE / FR) — or pick "Auto-detect from country".' +
+        '</div>';
+        const html = [summaryHtml, legendHtml, '<div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Order ID</th><th>Customer</th><th>Email</th><th>Lang</th><th class="num">Lost revenue</th><th>Send mail</th></tr></thead><tbody>'];
+        rows.forEach((o, idx) => {
           const timeHtml = o.time ? '<span class="dim" style="margin-left:6px;font-size:11px;">' + escHtml(o.time) + '</span>' : '';
           const emailHtml = o.email
             ? '<a class="mailto" href="mailto:' + escHtml(o.email) + '" title="Open email">' + escHtml(o.email) + '</a>'
             : '<span class="dim">—</span>';
+          const detected = detectLang(o.country);
+          const langBadge = '<span class="lang-badge lang-' + detected + '" title="Auto-detected from ' + escHtml(o.country || 'unknown') + '">' + detected.toUpperCase() + '</span>';
+          const hasEmail = !!o.email;
+          const disabled = hasEmail ? '' : ' disabled aria-disabled="true" style="opacity:.35;cursor:not-allowed;"';
+          const oref = '__cancRows[' + idx + ']';
+          const mailBtns = hasEmail
+            ? '<button class="mail-btn mail-btn--apple" data-mail-pick title="Send follow-up mail (auto: ' + detected.toUpperCase() + ') — choose language" onclick="__mailActions.pickLang(' + oref + ', this)">✉ Mail</button>'
+            : '<span class="dim">no email on file</span>';
           html.push('<tr class="row-cancelled">' +
             '<td class="mono">' + escHtml(o.date) + timeHtml + '</td>' +
             '<td class="mono">' + escHtml(o.id || '—') + '</td>' +
             '<td>' + escHtml(o.customer || '—') + '</td>' +
             '<td class="mono" style="font-size:11.5px;">' + emailHtml + '</td>' +
-            '<td><span class="status-badge status-cancelled">' + escHtml(o.status || 'Cancelled') + '</span></td>' +
+            '<td>' + langBadge + '</td>' +
             '<td class="num">' + fmtEur(o.revenue) + '</td>' +
+            '<td>' + mailBtns + '</td>' +
           '</tr>');
         });
         html.push('</tbody></table></div>');
         body.innerHTML = html.join('');
+        // Expose rows for inline onclick handlers
+        window.__cancRows = rows;
       }
     }
     else if (type === 'refunds') {
@@ -2149,12 +2519,12 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       const refunded = [];
       let totalRefund = 0, totalGross = 0, completedCount = 0;
       for (const o of state.orders) {
-        if (!o._date || !spec.matches(o, curKey) || !isComplete(o)) continue;
+        if (!o._date || !spec.matches(o, curKey) || !countsRevenue(o)) continue;
         completedCount += 1;
         totalGross += o.revenue;
         if (o.refund > 0) { totalRefund += o.refund; refunded.push(o); }
       }
-      refunded.sort((a, b) => b.refund - a.refund);
+      refunded.sort(refundsCompareFn(state.refundsSort.col, state.refundsSort.dir));
       const summaryHtml = '<div class="refunds-summary" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px;">' +
         '<div class="rsum-item"><div class="rsum-lbl">Total refunded</div><div class="rsum-val">' + fmtEur(totalRefund) + '</div></div>' +
         '<div class="rsum-item"><div class="rsum-lbl">Refund rate</div><div class="rsum-val">' + (totalGross > 0 ? (totalRefund / totalGross * 100).toFixed(1) : '0') + '%</div><div class="rsum-sub">of completed revenue</div></div>' +
@@ -2163,7 +2533,16 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       '</div>';
       if (!refunded.length) { body.innerHTML = summaryHtml + '<div class="empty">No refunds in this period</div>'; }
       else {
-        const html = [summaryHtml, '<div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Order</th><th>Customer</th><th class="num">Gross</th><th class="num">Refund</th><th class="num">Net</th><th class="num">%</th></tr></thead><tbody>'];
+        const ind = col => state.refundsSort.col === col ? ' <span style="opacity:.7;">' + (state.refundsSort.dir === 'asc' ? '▲' : '▼') + '</span>' : '';
+        const html = [summaryHtml, '<div class="table-wrap"><table class="table table-sortable" id="modalRefundsTable"><thead><tr>' +
+          '<th data-rmsort="date" class="sortable">Date' + ind('date') + '</th>' +
+          '<th data-rmsort="id" class="sortable">Order' + ind('id') + '</th>' +
+          '<th data-rmsort="customer" class="sortable">Customer' + ind('customer') + '</th>' +
+          '<th data-rmsort="gross" class="sortable num">Gross' + ind('gross') + '</th>' +
+          '<th data-rmsort="refund" class="sortable num">Refund' + ind('refund') + '</th>' +
+          '<th data-rmsort="net" class="sortable num">Net' + ind('net') + '</th>' +
+          '<th data-rmsort="share" class="sortable num">%' + ind('share') + '</th>' +
+          '</tr></thead><tbody>'];
         refunded.forEach(o => {
           const gross = o.revenue, refund = o.refund, net = gross - refund;
           const sharePct = gross > 0 ? (refund / gross * 100) : 0;
@@ -2180,6 +2559,16 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
         });
         html.push('</tbody></table></div>');
         body.innerHTML = html.join('');
+        // Wire column sort inside refunds modal — re-renders in place
+        body.querySelectorAll('th[data-rmsort]').forEach(th => {
+          th.addEventListener('click', () => {
+            const col = th.dataset.rmsort;
+            if (state.refundsSort.col === col) state.refundsSort.dir = state.refundsSort.dir === 'asc' ? 'desc' : 'asc';
+            else { state.refundsSort.col = col; state.refundsSort.dir = (col === 'customer' || col === 'date' || col === 'id') ? 'asc' : 'desc'; }
+            renderRefunds();
+            openModal('refunds');
+          });
+        });
       }
     }
     else if (type === 'payment') {
@@ -2189,7 +2578,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       const map = new Map();
       let total = 0;
       for (const o of state.orders) {
-        if (!o._date || !isComplete(o)) continue;
+        if (!o._date || !countsRevenue(o)) continue;
         if (!spec.matches(o, curKey)) continue;
         const net = o.revenue - o.refund;
         map.set(o.payment, (map.get(o.payment) || 0) + net);
@@ -2257,7 +2646,7 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       const buckets = Array.from({length: 7}, () => ({ net: 0, cnt: 0 }));
       const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
       for (const o of state.orders) {
-        if (!o._date || !isComplete(o) || !spec2.matches(o, curKey)) continue;
+        if (!o._date || !countsRevenue(o) || !spec2.matches(o, curKey)) continue;
         const dow = o._date.getDay();
         buckets[dow].net += (o.revenue - o.refund); buckets[dow].cnt += 1;
       }
@@ -2633,12 +3022,76 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
       document.getElementById('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
       document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
+      // Helper to sync both status dropdowns whenever one changes.
+      // Dropdown only updates the Orders TABLE immediately. Revenue / KPIs / bars stay
+      // on the previously-applied filter (state.revenueFilter) until the user hits Apply.
+      function syncStatusFilter(val, fromGlobal){
+        state.ordersFilter = val;
+        // Orders table dropdown: find option, else leave at first matching / all
+        const ord = document.getElementById('ordersStatusFilter');
+        if (ord && fromGlobal) {
+          let found = false;
+          for (let i = 0; i < ord.options.length; i++) { if (ord.options[i].value === val) { ord.selectedIndex = i; found = true; break; } }
+          if (!found) ord.value = 'all';
+        }
+        // Global dropdown: only the 5 canonical bundles exist
+        const gbl = document.getElementById('globalStatusFilter');
+        if (gbl) {
+          const canonical = new Set(['all','complete','complete+processing','processing','cancelled']);
+          if (canonical.has(val)) gbl.value = val; else gbl.value = 'all';
+        }
+        renderOrders();
+        updateApplyBtn();
+      }
+
+      // Show/enable the Apply button whenever ordersFilter ≠ revenueFilter.
+      function updateApplyBtn(){
+        const btn = document.getElementById('btnApplyStatus');
+        if (!btn) return;
+        const dirty = state.ordersFilter !== state.revenueFilter;
+        btn.disabled = !dirty;
+        if (dirty) {
+          btn.classList.add('pulse');
+          btn.textContent = 'Apply';
+          btn.title = 'Apply "' + state.ordersFilter + '" to revenue / KPIs (currently showing: ' + state.revenueFilter + ')';
+        } else {
+          btn.classList.remove('pulse');
+          btn.textContent = 'Applied';
+          btn.title = 'Revenue / KPIs are in sync with the dropdown';
+        }
+      }
+
+      // Overview: global status filter dropdown
+      const gblFilter = document.getElementById('globalStatusFilter');
+      if (gblFilter) {
+        gblFilter.addEventListener('change', e => syncStatusFilter(e.target.value, true));
+      }
+
+      // Apply button: copy ordersFilter → revenueFilter and re-render everything.
+      // NOTE: renderHeader() is NOT called here — it references legacy hdrRev/hdrOrd/hdrYear
+      // elements that don't exist in the current template and would throw, silently killing
+      // the render() below. That's exactly why the button appeared dead in round 10.
+      const applyBtn = document.getElementById('btnApplyStatus');
+      if (applyBtn) {
+        applyBtn.addEventListener('click', () => {
+          state.revenueFilter = state.ordersFilter;
+          updateApplyBtn();
+          render();
+        });
+      }
+
       // Orders table: status filter dropdown
       const ordFilter = document.getElementById('ordersStatusFilter');
       if (ordFilter) {
-        ordFilter.addEventListener('change', e => {
-          state.ordersFilter = e.target.value;
-          renderOrders();
+        ordFilter.addEventListener('change', e => syncStatusFilter(e.target.value, false));
+      }
+      // Orders table: live search — debounced
+      const ordSearch = document.getElementById('ordersSearch');
+      if (ordSearch) {
+        let _st;
+        ordSearch.addEventListener('input', e => {
+          clearTimeout(_st);
+          _st = setTimeout(() => { state.ordersQuery = e.target.value; renderOrders(); }, 120);
         });
       }
       // Orders table: clickable sort headers — toggles dir on re-click, swaps col otherwise
@@ -2655,6 +3108,61 @@ td.mono{font-family:'JetBrains Mono','Menlo','SF Mono',monospace;font-size:11.5p
           renderOrders();
         });
       });
+
+      // Top customers table: clickable sort headers
+      document.querySelectorAll('#custTable th[data-csort]').forEach(th => {
+        th.addEventListener('click', () => {
+          const col = th.dataset.csort;
+          if (state.customersSort.col === col) {
+            state.customersSort.dir = state.customersSort.dir === 'asc' ? 'desc' : 'asc';
+          } else {
+            state.customersSort.col = col;
+            state.customersSort.dir = (col === 'name') ? 'asc' : 'desc';
+          }
+          renderCustomers();
+        });
+      });
+
+      // Refunds table: clickable sort headers
+      document.querySelectorAll('#refundsTable th[data-rsort]').forEach(th => {
+        th.addEventListener('click', () => {
+          const col = th.dataset.rsort;
+          if (state.refundsSort.col === col) {
+            state.refundsSort.dir = state.refundsSort.dir === 'asc' ? 'desc' : 'asc';
+          } else {
+            state.refundsSort.col = col;
+            state.refundsSort.dir = (col === 'customer' || col === 'date' || col === 'id') ? 'asc' : 'desc';
+          }
+          renderRefunds();
+        });
+      });
+
+      // Mail language popover: wire button clicks (NL/EN/DE/FR/Auto) → opens Apple Mail
+      const mlp = document.getElementById('mailLangPop');
+      if (mlp) {
+        mlp.querySelectorAll('button[data-lang]').forEach(btn => {
+          btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const lang = btn.dataset.lang;
+            const ord = _pickPendingOrder;
+            hideLangPop();
+            if (!ord) return;
+            // 'auto' → pass undefined so buildMail() falls back to detectLang()
+            openAppleMail(ord, lang === 'auto' ? undefined : lang);
+          });
+        });
+        // Click outside or Escape dismisses
+        document.addEventListener('click', e => {
+          if (mlp.hidden) return;
+          if (e.target.closest('#mailLangPop')) return;
+          if (e.target.closest('[data-mail-pick]')) return;
+          hideLangPop();
+        });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') hideLangPop(); });
+        // Reposition on scroll/resize while open (to avoid floating off-target)
+        window.addEventListener('scroll', () => { if (!mlp.hidden) hideLangPop(); }, true);
+        window.addEventListener('resize', () => { if (!mlp.hidden) hideLangPop(); });
+      }
 
       // Cancelled KPI tile: clickable — opens cancelled orders modal with emails
       const canTile = document.getElementById('kpiCanTile');
