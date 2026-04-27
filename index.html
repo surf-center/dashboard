@@ -147,6 +147,12 @@ main{padding:24px 32px 56px;max-width:1440px;margin:0 auto;}
 .cmp-expected{height:100%;background:repeating-linear-gradient(45deg,#dbeafe,#dbeafe 5px,#eff6ff 5px,#eff6ff 10px);transition:width 0.5s cubic-bezier(0.4,0,0.2,1);border-radius:0 5px 5px 0;border-left:1px dashed #93c5fd;}
 .cmp-row.current .cmp-fill{background:#2563eb;border-radius:5px;}
 .cmp-row.current .cmp-year{color:var(--accent-blue);}
+.cmp-row.current.up .cmp-fill{background:#16a34a;}
+.cmp-row.current.down .cmp-fill{background:#dc2626;}
+.cmp-row.current.up .cmp-expected{background:repeating-linear-gradient(45deg,#bbf7d0,#bbf7d0 5px,#dcfce7 5px,#dcfce7 10px);border-left-color:#4ade80;}
+.cmp-row.current.down .cmp-expected{background:repeating-linear-gradient(45deg,#fecaca,#fecaca 5px,#fee2e2 5px,#fee2e2 10px);border-left-color:#fca5a5;}
+.cmp-row.current.up .cmp-year{color:var(--success);}
+.cmp-row.current.down .cmp-year{color:var(--down);}
 .cmp-row.partial .cmp-fill{border-radius:5px 0 0 5px;}
 .cmp-value{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;min-width:80px;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:1px;letter-spacing:-0.2px;}
 .cmp-value .exp{font-size:10px;font-weight:600;color:var(--muted2);}
@@ -961,9 +967,12 @@ td.mono{font-family:'JetBrains Mono','SF Mono','Menlo',monospace;font-size:11.5p
         '<button type="button" data-action="all" title="Show all years with data">All</button>' +
       '</span>';
     const fireChange = () => {
+      // Re-render the entire dashboard so every card reflects the new year set.
+      // The actual top-level render fn is `render` (not renderAll). Calling it covers
+      // every chart at once; we still invoke onChange afterwards so any local
+      // post-render hook (e.g. modal redraw) gets a chance to run.
+      if (typeof render === 'function') { try { render(); } catch(e) {} }
       onChange && onChange();
-      // Re-render the entire dashboard so every card reflects the new year set
-      if (typeof renderAll === 'function') { try { renderAll(); } catch(e) {} }
     };
     // Toggle on individual chip click
     host.querySelectorAll('.year-chip').forEach(btn => {
@@ -992,11 +1001,18 @@ td.mono{font-family:'JetBrains Mono','SF Mono','Menlo',monospace;font-size:11.5p
     if (g === 'day') {
       const anchor = state.day || state.refDate;
       const m = anchor.getMonth(), dom = anchor.getDate(), yA = anchor.getFullYear();
+      // "Today" by the actual calendar — used to mark the picked day as in-progress
+      // when it is today's date (so the row gets a projection extension and the bar
+      // colours by tracking).
+      const today = new Date();
+      const isAnchorToday = (yA === today.getFullYear() && m === today.getMonth() && dom === today.getDate());
       return {
         matches: (o, y) => o._date && o._y === y && o._date.getMonth() === m && o._date.getDate() === dom,
         label: MONTH_FULL[m] + ' ' + dom + ' · ' + yA,
         shortLabel: MONTH_NAMES[m] + ' ' + dom,
-        isPartial: y => y === state.refDate.getFullYear() && (state.refDate.getMonth() < m || (state.refDate.getMonth() === m && state.refDate.getDate() < dom)),
+        // Mark partial only when the picked day is the current calendar day for the
+        // matching year — that's the only case where the bucket is still filling.
+        isPartial: y => isAnchorToday && y === today.getFullYear(),
       };
     }
     if (g === 'week') {
@@ -1212,46 +1228,26 @@ td.mono{font-family:'JetBrains Mono','SF Mono','Menlo',monospace;font-size:11.5p
     return countsRevenue(o) ? (o.revenue - o.refund) : 0;
   }
   function shapeProjectionFactor(metricKey){
-    if (state.grain !== 'year') return currentElapsedRatio();
-    const refDate = state.refDate;
-    const refY = refDate.getFullYear();
-    const refMonth = refDate.getMonth();
-    const refDay = refDate.getDate();
-    const daysInRefMonth = new Date(refY, refMonth + 1, 0).getDate();
-    const monthFraction = refDay / daysInRefMonth;
-    // Use the SAME prior-year set as the Cumulative card's chip selection so YoY and
-    // Cumulative projections always agree. Fall back to "last 5 prior years with data"
-    // when the cumul selection has no usable priors.
-    const cumulSel = activeTrendYears('cumul').filter(y => y < refY).sort((a,b)=>b-a);
-    const fallback = getYearsWithData().filter(y => y < refY).sort((a,b)=>b-a).slice(0, 5);
-    const priorYears = cumulSel.length > 0 ? cumulSel : fallback;
-    if (priorYears.length === 0) return currentElapsedRatio();
-    let priorCount = 0;
-    const fracsSum = new Array(12).fill(0);
-    priorYears.forEach(y => {
-      const byMonth = new Array(12).fill(0);
-      for (const o of state.orders) {
-        if (!o._date || o._y !== y) continue;
-        byMonth[o._m - 1] += metricVal(o, metricKey);
-      }
-      let acc = 0;
-      const cum = new Array(12).fill(0);
-      for (let m = 0; m < 12; m++) { acc += byMonth[m]; cum[m] = acc; }
-      if (acc <= 0) return;
-      for (let m = 0; m < 12; m++) fracsSum[m] += cum[m] / acc;
-      priorCount += 1;
-    });
-    if (priorCount === 0) return currentElapsedRatio();
-    const fracs = fracsSum.map(s => s / priorCount);
-    const fracPrev = refMonth > 0 ? fracs[refMonth - 1] : 0;
-    const fracCur  = fracs[refMonth];
-    const fracNow  = fracPrev + (fracCur - fracPrev) * monthFraction;
-    if (fracNow > 0 && fracNow < 1) return fracNow;
+    // Pure current-year extrapolation: projection = actualSoFar / linear-elapsed-ratio.
+    // This deliberately does NOT depend on which prior years are selected, so the
+    // expected EOY stays stable when the user toggles chips.
     return currentElapsedRatio();
   }
   function currentElapsedRatio(){
     const g = state.grain;
     const ref = state.refDate;
+    if (g === 'day') {
+      // Project by hour-of-day when the picked day is today; otherwise the day is
+      // complete and no projection is needed.
+      const today = new Date();
+      const anchor = state.day || ref;
+      const isToday = anchor.getFullYear() === today.getFullYear() &&
+                      anchor.getMonth() === today.getMonth() &&
+                      anchor.getDate() === today.getDate();
+      if (!isToday) return 1;
+      const elapsed = (today.getHours() + today.getMinutes()/60) / 24;
+      return Math.max(0.01, Math.min(0.99, elapsed));
+    }
     if (g === 'week') {
       const d = ref.getDay() || 7; // 1..7 (Mon..Sun)
       return d / 7;
@@ -1401,7 +1397,16 @@ td.mono{font-family:'JetBrains Mono','SF Mono','Menlo',monospace;font-size:11.5p
       } else {
         deltaHtml = '<span class="cmp-delta neutral">—</span>';
       }
-      const rowCls = 'cmp-row' + (r.isCurrent ? ' current' : '') + (r.isPartial ? ' partial' : '');
+      // Colour the current/focus row based on whether it's tracking ahead of (green) or
+      // behind (red) the prior year. For a partial year we compare the projected EOY
+      // total to last year; for a complete year we compare the actual to last year.
+      let perfCls = '';
+      if (r.isCurrent && next && prev > 0) {
+        const projected = (r.expected !== null) ? r.expected : cur;
+        if (projected >= prev) perfCls = ' up';
+        else perfCls = ' down';
+      }
+      const rowCls = 'cmp-row' + (r.isCurrent ? ' current' : '') + (r.isPartial ? ' partial' : '') + perfCls;
       const actualPct = maxV > 0 ? (cur / maxV * 100) : 0;
       const expectedExtraPct = (r.expected !== null && r.expected > cur) ? ((r.expected - cur) / maxV * 100) : 0;
       // Round 13: cancelled overlay removed from the cmp-bar. Lost-order insight moved
@@ -3083,15 +3088,33 @@ td.mono{font-family:'JetBrains Mono','SF Mono','Menlo',monospace;font-size:11.5p
       }));
     }
 
-    // Build line datasets — focus year first (drawn on top via order:1), older years thin.
-    const datasets = years.map((y, i) => ({
-      label: y.toString() + ' AOV',
-      data: perYearVals[i],
-      ...yearStyle(y, i),
-      tension: 0.3,
-      spanGaps: false,
-      order: y === focusY ? 1 : 2
-    }));
+    // Build datasets — focus year as BARS (so the per-month / per-period values pop),
+    // older years as thin overlay lines for context.
+    const datasets = years.map((y, i) => {
+      if (y === focusY) {
+        return {
+          type: 'bar',
+          label: y.toString() + ' AOV',
+          data: perYearVals[i],
+          backgroundColor: 'rgba(15,23,42,0.85)',
+          borderColor: '#0f172a',
+          borderWidth: 0,
+          borderRadius: 4,
+          barPercentage: 0.85,
+          categoryPercentage: 0.85,
+          order: 2 // bars under lines
+        };
+      }
+      return {
+        type: 'line',
+        label: y.toString() + ' AOV',
+        data: perYearVals[i],
+        ...yearStyle(y, i),
+        tension: 0.3,
+        spanGaps: false,
+        order: 1
+      };
+    });
     return { labels, datasets };
   }
   function renderAov(canvasId='aovChart', chartKey='aov'){
@@ -3112,7 +3135,9 @@ td.mono{font-family:'JetBrains Mono','SF Mono','Menlo',monospace;font-size:11.5p
     }
     dc(chartKey);
     charts[chartKey] = new Chart(document.getElementById(canvasId), {
-      type: 'line',
+      // Base type 'bar' so the focus year renders as bars; older years specify
+      // type:'line' on their dataset to overlay as thin reference lines.
+      type: 'bar',
       data: { labels, datasets },
       options: {
         responsive: true, maintainAspectRatio: false,
@@ -3308,7 +3333,23 @@ td.mono{font-family:'JetBrains Mono','SF Mono','Menlo',monospace;font-size:11.5p
         });
       }
     }
-    // 3) Average prior years — single trendline (dotted) that summarises the
+    // 3) Individual prior-year lines — thin solid coloured lines, one per selected
+    //    prior year, so the user can see each year's cumulative shape side-by-side.
+    //    They sit behind the focus year (higher order = drawn lower).
+    priorYearsForAvg.forEach((y, idx) => {
+      const yData = perYear[y];
+      if (!yData) return;
+      const idxFromEnd = (priorYearsForAvg.length - 1 - idx);
+      const colour = YEAR_COLORS[(idxFromEnd + 1) % YEAR_COLORS.length] || '#94a3b8';
+      datasets.push({
+        label: y.toString(),
+        data: yData.cum.slice(),
+        borderColor: colour,
+        backgroundColor: 'transparent',
+        fill: false, tension: 0.25, pointRadius: 0, borderWidth: 1.4, order: 4
+      });
+    });
+    // 4) Average of selected prior years — dotted trendline summarising the
     //    historical cumulative shape at each month-end.
     if (priorAvgCum && priorAvgCum.some(v => v !== null)) {
       const lbl = 'Avg of ' + priorYearsForAvg.length + ' prior year' + (priorYearsForAvg.length === 1 ? '' : 's');
@@ -3356,7 +3397,7 @@ td.mono{font-family:'JetBrains Mono','SF Mono','Menlo',monospace;font-size:11.5p
     if (sub) {
       const nPrior = priorYearsForAvg.length;
       const focusBlurb = isLiveYear ? (refY + ' actual + projected (dashed)') : (refY + ' actual (full year)');
-      sub.textContent = 'Cumulative ' + measure.word + ' · ' + focusBlurb + ' vs avg of ' + nPrior + ' prior year' + (nPrior === 1 ? '' : 's') + ' (dotted trendline)';
+      sub.textContent = 'Cumulative ' + measure.word + ' · ' + focusBlurb + ' vs ' + nPrior + ' prior year' + (nPrior === 1 ? '' : 's') + ' (coloured lines + dotted avg)';
     }
     dc(chartKey);
     charts[chartKey] = new Chart(document.getElementById(canvasId), {
@@ -3504,6 +3545,14 @@ td.mono{font-family:'JetBrains Mono','SF Mono','Menlo',monospace;font-size:11.5p
           datasets.push({ label: focusY + ' projection', data: projData, borderColor: FOCUS_LINE_M, backgroundColor: 'transparent', borderDash: [6,5], fill: false, tension: 0.25, pointRadius: 0, borderWidth: 2.0, spanGaps: true, order: 2 });
         }
       }
+      // Individual prior-year cumulative lines (one per selected year)
+      priorYearsForAvg.forEach((y, idx) => {
+        const yData = perYear[y];
+        if (!yData) return;
+        const idxFromEnd = (priorYearsForAvg.length - 1 - idx);
+        const colour = YEAR_COLORS[(idxFromEnd + 1) % YEAR_COLORS.length] || '#94a3b8';
+        datasets.push({ label: y.toString(), data: yData.cum.slice(), borderColor: colour, backgroundColor: 'transparent', fill: false, tension: 0.25, pointRadius: 0, borderWidth: 1.6, order: 4 });
+      });
       if (priorAvgCum && priorAvgCum.some(v => v !== null)) {
         const lbl = 'Avg of ' + priorYearsForAvg.length + ' prior year' + (priorYearsForAvg.length === 1 ? '' : 's');
         datasets.push({ label: lbl, data: priorAvgCum, borderColor: TREND_LINE_M, backgroundColor: 'transparent', borderDash: [2,3], fill: false, tension: 0.25, pointRadius: 0, borderWidth: 2.0, order: 3 });
@@ -4411,7 +4460,16 @@ td.mono{font-family:'JetBrains Mono','SF Mono','Menlo',monospace;font-size:11.5p
       inp.type = 'date';
       inp.className = 'period-input';
       if (state.day) inp.value = ymd(state.day);
-      inp.addEventListener('change', e => { const d = parseDate(e.target.value); if (d) { state.day = d; render(); } });
+      inp.addEventListener('change', e => {
+        const d = parseDate(e.target.value);
+        if (d) {
+          state.day = d;
+          // Keep state.year in sync with the picked day so every card that uses
+          // (state.year as anchor + state.day's MM-DD) stays consistent.
+          state.year = d.getFullYear();
+          render();
+        }
+      });
       host.appendChild(inp);
     } else if (g === 'week') {
       const years = getYearsWithData();
@@ -4485,6 +4543,9 @@ td.mono{font-family:'JetBrains Mono','SF Mono','Menlo',monospace;font-size:11.5p
       const d = new Date(state.day || state.refDate);
       d.setDate(d.getDate() + delta);
       state.day = d;
+      // Sync state.year so periodSpec's (y === o._y) match still works after
+      // stepping across a year boundary.
+    state.year = d.getFullYear();
     } else if (g === 'week') {
       let y = state.year || currentYear();
       let w = (state.week || isoWeek(state.refDate).week) + delta;
@@ -4715,6 +4776,9 @@ td.mono{font-family:'JetBrains Mono','SF Mono','Menlo',monospace;font-size:11.5p
           document.querySelectorAll('#grainChips .grain-chip').forEach(x => x.classList.remove('active'));
           b.classList.add('active');
           state.grain = b.dataset.grain;
+          // When entering day grain, align state.year with state.day so cards
+          // that anchor on (state.year + state.day's MM-DD) stay consistent.
+          if (state.grain === 'day' && state.day) state.year = state.day.getFullYear();
           renderPicker();
           render();
         });
